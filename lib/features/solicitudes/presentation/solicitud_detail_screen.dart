@@ -47,7 +47,29 @@ class SolicitudDetailScreen extends ConsumerWidget {
 
     await ref.read(solicitudesRepositoryProvider).eliminarSolicitud(solicitudId);
 
-    if (context.mounted) context.go('/dashboard');
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    context.go('/dashboard');
+    messenger.showSnackBar(
+      const SnackBar(
+        backgroundColor: AppColors.success,
+        duration: Duration(seconds: 3),
+        content: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.white),
+            SizedBox(width: 12),
+            Text(
+              'Solicitud eliminada correctamente',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

@@ -34,6 +34,14 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Café Tío Meme'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () => context.push('/kpis'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: CircleAvatar(
@@ -45,10 +53,6 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
           ),
         ],
       ),
