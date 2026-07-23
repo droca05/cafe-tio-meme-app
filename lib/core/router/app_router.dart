@@ -9,6 +9,7 @@ import '../../features/auth/providers/auth_providers.dart';
 import '../../features/clientes/presentation/cliente_detail_screen.dart';
 import '../../features/clientes/presentation/clientes_list_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
+import '../../features/exportar/presentation/exportar_screen.dart';
 import '../../features/kpis/presentation/kpis_screen.dart';
 import '../../features/solicitudes/presentation/editar_solicitud_screen.dart';
 import '../../features/solicitudes/presentation/nueva_solicitud_screen.dart';
@@ -60,6 +61,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/kpis',
         builder: (context, state) => const KpisScreen(),
+      ),
+      GoRoute(
+        path: '/exportar',
+        builder: (context, state) => const ExportarScreen(),
       ),
       GoRoute(
         path: '/solicitudes',

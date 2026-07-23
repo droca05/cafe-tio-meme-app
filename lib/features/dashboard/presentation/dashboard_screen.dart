@@ -39,6 +39,10 @@ class DashboardScreen extends ConsumerWidget {
             onPressed: () => context.push('/kpis'),
           ),
           IconButton(
+            icon: const Icon(Icons.download_outlined),
+            onPressed: () => context.push('/exportar'),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => ref.read(authRepositoryProvider).signOut(),
           ),
