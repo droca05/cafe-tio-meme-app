@@ -176,7 +176,30 @@ class Cliente {
 
 **Colección Firestore:** `clientes/{clienteId}`
 
-### 5.2 Solicitud
+### 5.2 ProductoCatalogo
+```dart
+// lib/features/solicitudes/domain/producto_catalogo_model.dart
+class ProductoCatalogo {
+  final String id;
+  final String nombre;
+  final String? descripcion;               // ej. "Anacafé 14, lavado"
+  final int? gramaje;                      // en gramos; null si no aplica (ej. Licor de Café)
+  final List<Presentacion> presentaciones; // vacío si el producto no aplica presentación
+  final double precioNormal;
+  final double? precioPromo;               // null si el producto no tiene precio promocional
+}
+```
+
+**Catálogo precargado** (constante local en la app — no requiere colección propia en Firestore; cada `Solicitud` guarda una copia desnormalizada del producto elegido en `ProductoItem`):
+
+| Producto | Descripción | Presentación | Gramaje | Precio normal | Precio promo |
+|---|---|---|---|---|---|
+| Café Premium | Anacafé 14, lavado | Grano / Molido | 350g | Q65 | Q55 |
+| Café Clásico | Catuai, lavado | Grano / Molido | 350g | Q60 | Q50 |
+| Café Campesino | Mezcla | Molido | 400g | Q35 | Q30 |
+| Licor de Café | — | — | — | Q80 | — |
+
+### 5.3 Solicitud
 ```dart
 // lib/features/solicitudes/domain/solicitud_model.dart
 class Solicitud {
@@ -185,6 +208,7 @@ class Solicitud {
   final String clienteNombre;    // Desnormalizado para mostrar sin query extra
   final CanalVenta canal;        // FORZA | VENTA_DIRECTA
   final List<ProductoItem> productos;
+  final double total;            // Suma de los subtotales de productos
   final EstadoPedido estadoPedido;
   final EstadoPago estadoPago;
   final String? notas;
@@ -193,14 +217,19 @@ class Solicitud {
 }
 
 class ProductoItem {
-  final String nombre;
+  final String productoId;          // Referencia a ProductoCatalogo
+  final String nombre;              // Desnormalizado
+  final Presentacion? presentacion; // null si el producto no aplica presentación
   final int cantidad;
+  final bool esPromo;                // si se aplicó el precio promocional
+  final double precioUnitario;       // precio aplicado (normal o promo) al momento de la venta
+  final double subtotal;             // precioUnitario * cantidad
 }
 ```
 
 **Colección Firestore:** `solicitudes/{solicitudId}`
 
-### 5.3 Enums
+### 5.4 Enums
 ```dart
 // lib/features/solicitudes/domain/enums.dart
 enum CanalVenta { forza, ventaDirecta }
@@ -208,6 +237,8 @@ enum CanalVenta { forza, ventaDirecta }
 enum EstadoPedido { pendiente, enProceso, entregado }
 
 enum EstadoPago { pendiente, transferenciaRecibida, verificado, pagado }
+
+enum Presentacion { grano, molido }
 ```
 
 ---
@@ -282,7 +313,11 @@ enum EstadoPago { pendiente, transferenciaRecibida, verificado, pagado }
    - Si se crea nuevo: formulario inline (nombre, teléfono, dirección)
 
 3. **Productos:**
-   - Lista dinámica: campo "nombre del producto" + campo "cantidad"
+   - Selector de producto del catálogo (dropdown o lista), mostrando nombre + descripción (ej. "Café Premium — Anacafé 14, lavado")
+   - Campo de presentación (Grano / Molido) cuando el producto seleccionado aplique; se oculta para productos sin presentaciones (ej. Licor de Café)
+   - Campo de cantidad
+   - Toggle "Aplicar precio promo", deshabilitado si el producto no tiene precio promocional
+   - Precio unitario y subtotal se calculan automáticamente según el producto, la presentación y si el toggle promo está activo
    - Botón "＋ Agregar otro producto"
    - Mínimo 1 producto requerido
 
@@ -293,7 +328,12 @@ enum EstadoPago { pendiente, transferenciaRecibida, verificado, pagado }
 5. **Notas (opcional):**
    - Campo de texto libre
 
-6. **Botón "Guardar Solicitud"**
+6. **Total de la solicitud:**
+   - Suma de los subtotales de todos los productos agregados
+   - Solo lectura, se recalcula automáticamente al agregar/quitar productos o cambiar cantidad/promo
+   - Visible al final del formulario, antes del botón de guardar
+
+7. **Botón "Guardar Solicitud"**
    - Valida que canal y al menos 1 producto estén completos
    - Muestra loading mientras guarda en Firestore
    - Al guardar exitosamente: navega de vuelta al dashboard
