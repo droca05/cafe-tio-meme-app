@@ -1,3 +1,9 @@
 import 'package:intl/intl.dart';
 
-// TODO: Utilidades de formato de fecha
+String formatFecha(DateTime fecha) {
+  return DateFormat('dd/MM/yyyy').format(fecha);
+}
+
+String formatFechaHora(DateTime fecha) {
+  return DateFormat('dd/MM/yyyy HH:mm').format(fecha);
+}

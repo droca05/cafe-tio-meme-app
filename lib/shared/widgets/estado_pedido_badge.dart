@@ -4,19 +4,15 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../features/solicitudes/domain/enums.dart';
 
-class EstadoBadge extends StatelessWidget {
-  final EstadoPago estadoPago;
+class EstadoPedidoBadge extends StatelessWidget {
+  final EstadoPedido estadoPedido;
 
-  const EstadoBadge({super.key, required this.estadoPago});
+  const EstadoPedidoBadge({super.key, required this.estadoPedido});
 
   @override
   Widget build(BuildContext context) {
-    final (label, color) = switch (estadoPago) {
-      EstadoPago.pagado => ('Pagado', AppColors.success),
-      EstadoPago.verificado => ('Verificado', AppColors.success),
-      EstadoPago.transferenciaRecibida => ('Sin verificar', AppColors.danger),
-      EstadoPago.pendiente => ('Pendiente', AppColors.warning),
-    };
+    final entregado = estadoPedido == EstadoPedido.entregado;
+    final color = entregado ? AppColors.success : AppColors.warning;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -25,7 +21,7 @@ class EstadoBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        label,
+        entregado ? 'Entregado' : 'Pendiente',
         style: AppTextStyles.label.copyWith(color: color),
       ),
     );

@@ -19,7 +19,9 @@ class AppColors {
   static const warning = Color(0xFFC8831A); // Pendiente / En proceso
   static const danger = Color(0xFFB04030); // Sin verificar / Error
 
-  // Canal (fondos de badge)
-  static const ventaDirectaBg = Color(0xFFEBF5EE);
-  static const forzaBg = Color(0xFFFEF3E2);
+  // Canal (badge de Venta Directa / FORZA)
+  static const directaText = Color(0xFF4A6FA5);
+  static const directaBg = Color(0xFFEEF2F9);
+  static const forzaText = Color(0xFF7B5EA7);
+  static const forzaBg = Color(0xFFF3EFF9);
 }

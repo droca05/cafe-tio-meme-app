@@ -18,10 +18,11 @@ class Cliente {
   factory Cliente.fromMap(String id, Map<String, dynamic> map) {
     return Cliente(
       id: id,
-      nombre: map['nombre'] as String,
-      telefono: map['telefono'] as String,
-      direccion: map['direccion'] as String,
-      fechaRegistro: (map['fechaRegistro'] as Timestamp).toDate(),
+      nombre: map['nombre'] as String? ?? '',
+      telefono: map['telefono'] as String? ?? '',
+      direccion: map['direccion'] as String? ?? '',
+      fechaRegistro:
+          (map['fechaRegistro'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 

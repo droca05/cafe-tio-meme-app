@@ -6,7 +6,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
+import '../../features/clientes/presentation/cliente_detail_screen.dart';
+import '../../features/clientes/presentation/clientes_list_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
+import '../../features/solicitudes/presentation/editar_solicitud_screen.dart';
+import '../../features/solicitudes/presentation/nueva_solicitud_screen.dart';
+import '../../features/solicitudes/presentation/solicitud_detail_screen.dart';
+import '../../features/solicitudes/presentation/solicitudes_list_screen.dart';
 
 /// Convierte el Stream de authStateChanges en un Listenable
 /// para que GoRouter reevalúe el redirect ante cambios de sesión.
@@ -49,6 +55,37 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/dashboard',
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/solicitudes',
+        builder: (context, state) => const SolicitudesListScreen(),
+      ),
+      GoRoute(
+        path: '/solicitudes/nueva',
+        builder: (context, state) => const NuevaSolicitudScreen(),
+      ),
+      GoRoute(
+        path: '/solicitudes/:id',
+        builder: (context, state) => SolicitudDetailScreen(
+          solicitudId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/solicitudes/:id/editar',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return EditarSolicitudScreen(solicitudId: id);
+        },
+      ),
+      GoRoute(
+        path: '/clientes',
+        builder: (context, state) => const ClientesListScreen(),
+      ),
+      GoRoute(
+        path: '/clientes/:id',
+        builder: (context, state) => ClienteDetailScreen(
+          clienteId: state.pathParameters['id']!,
+        ),
       ),
     ],
   );
