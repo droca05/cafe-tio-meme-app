@@ -67,6 +67,16 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
       _productos.isNotEmpty &&
       _productos.every((p) => p.esValido);
 
+  bool get _hayCambios {
+    if (_canal != null) return true;
+    if (_clienteSeleccionado != null) return true;
+    if (_notasController.text.trim().isNotEmpty) return true;
+    if (_estadoPedidoInicial != EstadoPedido.pendiente) return true;
+    if (_productos.length > 1) return true;
+    final fila = _productos.first;
+    return fila.producto != null || fila.cantidad != 1 || fila.esPromo;
+  }
+
   Future<void> _crearCliente() async {
     final nombre = _nuevoNombreController.text.trim();
     final telefono = _nuevoTelefonoController.text.trim();
@@ -142,7 +152,29 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
 
       await ref.read(solicitudesRepositoryProvider).crearSolicitud(solicitud);
 
-      if (mounted) context.pop();
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      context.pop();
+      messenger.showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.success,
+          duration: Duration(seconds: 3),
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white),
+              SizedBox(width: 12),
+              Text(
+                'Solicitud creada exitosamente',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     } catch (e) {
       setState(() {
         _errorMessage = 'No se pudo guardar la solicitud. Intenta nuevamente.';
@@ -154,10 +186,19 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.cream,
-      appBar: AppBar(title: const Text('Nueva Solicitud')),
-      body: SingleChildScrollView(
+    return PopScope(
+      canPop: !_hayCambios,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final descartar = await confirmarDescartarCambios(context);
+        if (descartar && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.cream,
+        appBar: AppBar(title: const Text('Nueva Solicitud')),
+        body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,6 +279,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
             TextFormField(
               controller: _notasController,
               maxLines: 3,
+              onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
                 hintText: 'Notas adicionales sobre la solicitud...',
               ),
@@ -288,6 +330,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

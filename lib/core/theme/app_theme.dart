@@ -79,6 +79,12 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.danger, width: 2),
         ),
       ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
       dividerColor: AppColors.steam,
       textTheme: TextTheme(
         displayLarge: AppTextStyles.displayLarge,

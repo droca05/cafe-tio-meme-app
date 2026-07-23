@@ -9,6 +9,35 @@ import '../../domain/enums.dart';
 import '../../domain/producto_catalogo.dart';
 import '../../domain/solicitud_model.dart';
 
+Future<bool> confirmarDescartarCambios(BuildContext context) async {
+  final descartar = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('¿Descartar cambios?'),
+      content: const Text(
+        'Tienes cambios sin guardar. Si sales ahora los perderás.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text(
+            'Seguir editando',
+            style: TextStyle(color: AppColors.caramel),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text(
+            'Descartar',
+            style: TextStyle(color: AppColors.danger),
+          ),
+        ),
+      ],
+    ),
+  );
+  return descartar ?? false;
+}
+
 class ProductoFormRow {
   ProductoCatalogo? producto;
   int cantidad = 1;

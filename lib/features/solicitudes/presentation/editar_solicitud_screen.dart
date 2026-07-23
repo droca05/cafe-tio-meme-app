@@ -43,6 +43,12 @@ class _EditarSolicitudScreenState
   bool _isLoading = false;
   String? _errorMessage;
 
+  late CanalVenta _canalInicial;
+  String? _clienteIdInicial;
+  late EstadoPedido _estadoPedidoInicial;
+  late String _notasInicial;
+  late List<String> _productosInicial;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +58,12 @@ class _EditarSolicitudScreenState
     });
   }
 
+  List<String> _snapshotProductos() {
+    return _productos
+        .map((p) => '${p.producto?.id}|${p.cantidad}|${p.esPromo}')
+        .toList();
+  }
+
   void _inicializar(Solicitud solicitud, Cliente cliente) {
     _canal = solicitud.canal;
     _clienteSeleccionado = cliente;
@@ -59,7 +71,28 @@ class _EditarSolicitudScreenState
     if (_productos.isEmpty) _productos.add(ProductoFormRow());
     _estadoPedido = solicitud.estadoPedido;
     _notasController.text = solicitud.notas ?? '';
+
+    _canalInicial = _canal;
+    _clienteIdInicial = _clienteSeleccionado?.id;
+    _estadoPedidoInicial = _estadoPedido;
+    _notasInicial = _notasController.text.trim();
+    _productosInicial = _snapshotProductos();
+
     _inicializado = true;
+  }
+
+  bool get _hayCambios {
+    if (!_inicializado) return false;
+    if (_canal != _canalInicial) return true;
+    if (_clienteSeleccionado?.id != _clienteIdInicial) return true;
+    if (_estadoPedido != _estadoPedidoInicial) return true;
+    if (_notasController.text.trim() != _notasInicial) return true;
+    final actuales = _snapshotProductos();
+    if (actuales.length != _productosInicial.length) return true;
+    for (var i = 0; i < actuales.length; i++) {
+      if (actuales[i] != _productosInicial[i]) return true;
+    }
+    return false;
   }
 
   @override
@@ -154,7 +187,29 @@ class _EditarSolicitudScreenState
           .read(solicitudesRepositoryProvider)
           .actualizarSolicitud(actualizada);
 
-      if (mounted) context.pop();
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      context.pop();
+      messenger.showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.success,
+          duration: Duration(seconds: 3),
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white),
+              SizedBox(width: 12),
+              Text(
+                'Solicitud actualizada exitosamente',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     } catch (e) {
       setState(() {
         _errorMessage =
@@ -170,10 +225,19 @@ class _EditarSolicitudScreenState
     final solicitudAsync =
         ref.watch(solicitudStreamProvider(widget.solicitudId));
 
-    return Scaffold(
-      backgroundColor: AppColors.cream,
-      appBar: AppBar(title: const Text('Editar Solicitud')),
-      body: solicitudAsync.when(
+    return PopScope(
+      canPop: !_hayCambios,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final descartar = await confirmarDescartarCambios(context);
+        if (descartar && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.cream,
+        appBar: AppBar(title: const Text('Editar Solicitud')),
+        body: solicitudAsync.when(
         data: (solicitud) {
           if (_inicializado) {
             return _buildForm(solicitud);
@@ -203,6 +267,7 @@ class _EditarSolicitudScreenState
             'No se pudo cargar la solicitud.',
             style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
           ),
+        ),
         ),
       ),
     );
@@ -290,6 +355,7 @@ class _EditarSolicitudScreenState
           TextFormField(
             controller: _notasController,
             maxLines: 3,
+            onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
               hintText: 'Notas adicionales sobre la solicitud...',
             ),
