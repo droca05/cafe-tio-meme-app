@@ -52,8 +52,4 @@ class SolicitudesRepository {
   Future<void> actualizarEstadoSolicitud(String id, EstadoSolicitud estado) {
     return _collection.doc(id).update({'estadoSolicitud': estado.name});
   }
-
-  Future<void> actualizarEstadoPago(String id, EstadoPago estado) {
-    return _collection.doc(id).update({'estadoPago': estado.name});
-  }
 }

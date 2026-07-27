@@ -206,7 +206,6 @@ class _EditarSolicitudScreenState
         productos: productoItems,
         total: _total,
         estadoSolicitud: original.estadoSolicitud,
-        estadoPago: original.estadoPago,
         notas: _notasController.text.trim().isEmpty
             ? null
             : _notasController.text.trim(),

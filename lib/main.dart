@@ -5,11 +5,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/migration_remove_estado_pago.dart';
 import 'firebase_options.dart';
+
+// Migración de un solo uso: elimina el campo estadoPago de Firestore.
+// Ya se ejecutó (4 documentos actualizados) — dejar en false.
+const bool runMigration = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  if (runMigration) {
+    await ejecutarMigracionRemoveEstadoPago();
+  }
+
   runApp(const ProviderScope(child: MyApp()));
 }
 

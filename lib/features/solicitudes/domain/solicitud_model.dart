@@ -24,13 +24,6 @@ EstadoSolicitud _parseEstadoSolicitud(String? value) {
   );
 }
 
-EstadoPago _parseEstadoPago(String? value) {
-  return EstadoPago.values.firstWhere(
-    (e) => e.name == value,
-    orElse: () => EstadoPago.pendiente,
-  );
-}
-
 class ProductoItem {
   final String productoId; // Referencia a Producto
   final String nombre; // Desnormalizado
@@ -83,7 +76,6 @@ class Solicitud {
   final List<ProductoItem> productos;
   final double total; // Suma de los subtotales de productos
   final EstadoSolicitud estadoSolicitud;
-  final EstadoPago estadoPago;
   final String? notas;
   final DateTime fechaCreacion;
   final String creadoPor; // UID del usuario que creó la solicitud
@@ -96,7 +88,6 @@ class Solicitud {
     required this.productos,
     required this.total,
     required this.estadoSolicitud,
-    required this.estadoPago,
     this.notas,
     required this.fechaCreacion,
     required this.creadoPor,
@@ -113,7 +104,6 @@ class Solicitud {
           .toList(),
       total: (map['total'] as num?)?.toDouble() ?? 0,
       estadoSolicitud: _parseEstadoSolicitud(map['estadoSolicitud'] as String?),
-      estadoPago: _parseEstadoPago(map['estadoPago'] as String?),
       notas: map['notas'] as String?,
       fechaCreacion:
           (map['fechaCreacion'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -133,7 +123,6 @@ class Solicitud {
       'productos': productos.map((p) => p.toMap()).toList(),
       'total': total,
       'estadoSolicitud': estadoSolicitud.name,
-      'estadoPago': estadoPago.name,
       'notas': notas,
       'fechaCreacion': Timestamp.fromDate(fechaCreacion),
       'creadoPor': creadoPor,
@@ -142,7 +131,6 @@ class Solicitud {
 
   Solicitud copyWith({
     EstadoSolicitud? estadoSolicitud,
-    EstadoPago? estadoPago,
     String? notas,
   }) {
     return Solicitud(
@@ -153,7 +141,6 @@ class Solicitud {
       productos: productos,
       total: total,
       estadoSolicitud: estadoSolicitud ?? this.estadoSolicitud,
-      estadoPago: estadoPago ?? this.estadoPago,
       notas: notas ?? this.notas,
       fechaCreacion: fechaCreacion,
       creadoPor: creadoPor,

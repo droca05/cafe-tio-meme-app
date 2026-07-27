@@ -164,7 +164,6 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
         productos: productoItems,
         total: _total,
         estadoSolicitud: EstadoSolicitud.revisar,
-        estadoPago: EstadoPago.pendiente,
         notas: _notasController.text.trim().isEmpty
             ? null
             : _notasController.text.trim(),
