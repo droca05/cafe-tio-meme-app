@@ -5,8 +5,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../clientes/domain/cliente_model.dart';
 import '../../../clientes/providers/clientes_providers.dart';
+import '../../../productos/domain/producto_model.dart';
 import '../../domain/enums.dart';
-import '../../domain/producto_catalogo.dart';
 import '../../domain/solicitud_model.dart';
 
 Future<bool> confirmarDescartarCambios(BuildContext context) async {
@@ -39,24 +39,30 @@ Future<bool> confirmarDescartarCambios(BuildContext context) async {
 }
 
 class ProductoFormRow {
-  ProductoCatalogo? producto;
+  Producto? producto;
   int cantidad = 1;
   bool esPromo = false;
+  final TextEditingController precioController = TextEditingController();
 
   ProductoFormRow();
 
-  factory ProductoFormRow.desde(ProductoItem item) {
-    return ProductoFormRow()
-      ..producto = buscarProductoCatalogo(item.productoId)
+  factory ProductoFormRow.desde(ProductoItem item, Producto? producto) {
+    final row = ProductoFormRow()
+      ..producto = producto
       ..cantidad = item.cantidad
       ..esPromo = item.esPromo;
+    row.precioController.text = item.precioUnitario.toStringAsFixed(2);
+    return row;
   }
 
-  bool get esValido => producto != null && cantidad > 0;
+  bool get esValido => producto != null && cantidad > 0 && precioUnitario > 0;
 
-  double get precioUnitario => producto?.precioEfectivo(esPromo: esPromo) ?? 0;
+  double get precioUnitario =>
+      double.tryParse(precioController.text.replaceAll(',', '.')) ?? 0;
 
   double get subtotal => precioUnitario * cantidad;
+
+  void dispose() => precioController.dispose();
 }
 
 class SeccionTitulo extends StatelessWidget {
@@ -162,6 +168,7 @@ class CanalBoton extends StatelessWidget {
 
 class ProductoRowWidget extends StatelessWidget {
   final ProductoFormRow row;
+  final List<Producto> productosDisponibles;
   final bool puedeEliminar;
   final VoidCallback onChanged;
   final VoidCallback onEliminar;
@@ -169,6 +176,7 @@ class ProductoRowWidget extends StatelessWidget {
   const ProductoRowWidget({
     super.key,
     required this.row,
+    required this.productosDisponibles,
     required this.puedeEliminar,
     required this.onChanged,
     required this.onEliminar,
@@ -189,11 +197,11 @@ class ProductoRowWidget extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: DropdownButtonFormField<ProductoCatalogo>(
+                child: DropdownButtonFormField<Producto>(
                   initialValue: row.producto,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Producto'),
-                  items: catalogoProductos.map((producto) {
+                  items: productosDisponibles.map((producto) {
                     return DropdownMenuItem(
                       value: producto,
                       child: Text(
@@ -204,9 +212,9 @@ class ProductoRowWidget extends StatelessWidget {
                   }).toList(),
                   onChanged: (producto) {
                     row.producto = producto;
-                    if (producto?.precioPromo == null) {
-                      row.esPromo = false;
-                    }
+                    row.esPromo = false;
+                    row.precioController.text =
+                        producto == null ? '' : producto.precioNormal.toStringAsFixed(2);
                     onChanged();
                   },
                 ),
@@ -256,11 +264,24 @@ class ProductoRowWidget extends StatelessWidget {
                     ? null
                     : (value) {
                         row.esPromo = value;
+                        final producto = row.producto!;
+                        final precio = value
+                            ? producto.precioPromo!
+                            : producto.precioNormal;
+                        row.precioController.text = precio.toStringAsFixed(2);
                         onChanged();
                       },
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: row.precioController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Precio unitario (Q)'),
+            onChanged: (_) => onChanged(),
+          ),
+          const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
             child: Text(

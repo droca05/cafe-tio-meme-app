@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../productos/providers/productos_providers.dart';
 import '../../solicitudes/domain/enums.dart';
-import '../../solicitudes/domain/producto_catalogo.dart';
+import '../../solicitudes/domain/solicitud_model.dart';
 import '../../solicitudes/providers/solicitudes_providers.dart';
 
 enum RangoFecha { todo, hoy, semana, mes, personalizado }
@@ -15,33 +16,38 @@ class RangoFechas {
 
 class VentaProducto {
   final String nombre;
-  final int unidadesEntregadas;
-  final double ingresosEntregados;
-  final int unidadesPendientes;
-  final double montoPendiente;
+  final int unidadesRevisar;
+  final double montoRevisar;
+  final int unidadesVerificado;
+  final double montoVerificado;
+  final int unidadesNoPagado;
+  final double montoNoPagado;
 
   const VentaProducto({
     required this.nombre,
-    required this.unidadesEntregadas,
-    required this.ingresosEntregados,
-    required this.unidadesPendientes,
-    required this.montoPendiente,
+    required this.unidadesRevisar,
+    required this.montoRevisar,
+    required this.unidadesVerificado,
+    required this.montoVerificado,
+    required this.unidadesNoPagado,
+    required this.montoNoPagado,
   });
 }
 
 class VentaCanal {
   final int cantidadSolicitudes;
-  final double totalEntregado;
+  final double totalVerificado;
 
   const VentaCanal({
     required this.cantidadSolicitudes,
-    required this.totalEntregado,
+    required this.totalVerificado,
   });
 }
 
 class KpisData {
-  final double totalEntregado;
-  final double totalPendiente;
+  final double totalRevisar;
+  final double totalVerificado;
+  final double totalNoPagado;
   final List<VentaProducto> ventasPorProducto;
   final VentaCanal forza;
   final VentaCanal ventaDirecta;
@@ -50,8 +56,9 @@ class KpisData {
   final double ticketPromedio;
 
   const KpisData({
-    required this.totalEntregado,
-    required this.totalPendiente,
+    required this.totalRevisar,
+    required this.totalVerificado,
+    required this.totalNoPagado,
     required this.ventasPorProducto,
     required this.forza,
     required this.ventaDirecta,
@@ -106,72 +113,84 @@ final rangoFechasActivoProvider = Provider<RangoFechas>((ref) {
 
 final kpisProvider = Provider<AsyncValue<KpisData>>((ref) {
   final solicitudesAsync = ref.watch(solicitudesStreamProvider);
+  final productosAsync = ref.watch(productosActivosProvider);
   final rango = ref.watch(rangoFechasActivoProvider);
 
   return solicitudesAsync.whenData((todas) {
+    final productos = productosAsync.value ?? [];
+
     final enRango = todas
         .where((s) =>
             !s.fechaCreacion.isBefore(rango.inicio) &&
             !s.fechaCreacion.isAfter(rango.fin))
         .toList();
 
-    final entregadas =
-        enRango.where((s) => s.estadoPedido == EstadoPedido.entregado).toList();
-    final pendientes =
-        enRango.where((s) => s.estadoPedido == EstadoPedido.pendiente).toList();
+    final revisar =
+        enRango.where((s) => s.estadoSolicitud == EstadoSolicitud.revisar).toList();
+    final verificadas = enRango
+        .where((s) => s.estadoSolicitud == EstadoSolicitud.verificado)
+        .toList();
+    final noPagadas =
+        enRango.where((s) => s.estadoSolicitud == EstadoSolicitud.noPagado).toList();
 
-    final totalEntregado = entregadas.fold(0.0, (sum, s) => sum + s.total);
-    final totalPendiente = pendientes.fold(0.0, (sum, s) => sum + s.total);
+    final totalRevisar = revisar.fold(0.0, (sum, s) => sum + s.total);
+    final totalVerificado = verificadas.fold(0.0, (sum, s) => sum + s.total);
+    final totalNoPagado = noPagadas.fold(0.0, (sum, s) => sum + s.total);
 
-    final unidadesEntregadasPorProducto = <String, int>{};
-    final ingresosPorProducto = <String, double>{};
-    final unidadesPendientesPorProducto = <String, int>{};
-    final montoPendientePorProducto = <String, double>{};
+    final unidadesRevisarPorProducto = <String, int>{};
+    final montoRevisarPorProducto = <String, double>{};
+    final unidadesVerificadoPorProducto = <String, int>{};
+    final montoVerificadoPorProducto = <String, double>{};
+    final unidadesNoPagadoPorProducto = <String, int>{};
+    final montoNoPagadoPorProducto = <String, double>{};
 
-    for (final s in entregadas) {
-      for (final p in s.productos) {
-        unidadesEntregadasPorProducto[p.productoId] =
-            (unidadesEntregadasPorProducto[p.productoId] ?? 0) + p.cantidad;
-        ingresosPorProducto[p.productoId] =
-            (ingresosPorProducto[p.productoId] ?? 0) + p.subtotal;
+    void acumular(
+      List<Solicitud> solicitudes,
+      Map<String, int> unidadesMap,
+      Map<String, double> montoMap,
+    ) {
+      for (final s in solicitudes) {
+        for (final p in s.productos) {
+          unidadesMap[p.productoId] = (unidadesMap[p.productoId] ?? 0) + p.cantidad;
+          montoMap[p.productoId] = (montoMap[p.productoId] ?? 0) + p.subtotal;
+        }
       }
     }
-    for (final s in pendientes) {
-      for (final p in s.productos) {
-        unidadesPendientesPorProducto[p.productoId] =
-            (unidadesPendientesPorProducto[p.productoId] ?? 0) + p.cantidad;
-        montoPendientePorProducto[p.productoId] =
-            (montoPendientePorProducto[p.productoId] ?? 0) + p.subtotal;
-      }
-    }
 
-    final ventasPorProducto = catalogoProductos.map((producto) {
+    acumular(revisar, unidadesRevisarPorProducto, montoRevisarPorProducto);
+    acumular(verificadas, unidadesVerificadoPorProducto, montoVerificadoPorProducto);
+    acumular(noPagadas, unidadesNoPagadoPorProducto, montoNoPagadoPorProducto);
+
+    final ventasPorProducto = productos.map((producto) {
       return VentaProducto(
         nombre: producto.nombre,
-        unidadesEntregadas: unidadesEntregadasPorProducto[producto.id] ?? 0,
-        ingresosEntregados: ingresosPorProducto[producto.id] ?? 0,
-        unidadesPendientes: unidadesPendientesPorProducto[producto.id] ?? 0,
-        montoPendiente: montoPendientePorProducto[producto.id] ?? 0,
+        unidadesRevisar: unidadesRevisarPorProducto[producto.id] ?? 0,
+        montoRevisar: montoRevisarPorProducto[producto.id] ?? 0,
+        unidadesVerificado: unidadesVerificadoPorProducto[producto.id] ?? 0,
+        montoVerificado: montoVerificadoPorProducto[producto.id] ?? 0,
+        unidadesNoPagado: unidadesNoPagadoPorProducto[producto.id] ?? 0,
+        montoNoPagado: montoNoPagadoPorProducto[producto.id] ?? 0,
       );
     }).toList()
-      ..sort((a, b) => b.ingresosEntregados.compareTo(a.ingresosEntregados));
+      ..sort((a, b) => b.montoVerificado.compareTo(a.montoVerificado));
 
     VentaCanal calcularCanal(CanalVenta canal) {
-      final delCanal = entregadas.where((s) => s.canal == canal).toList();
+      final delCanal = verificadas.where((s) => s.canal == canal).toList();
       return VentaCanal(
         cantidadSolicitudes: delCanal.length,
-        totalEntregado: delCanal.fold(0.0, (sum, s) => sum + s.total),
+        totalVerificado: delCanal.fold(0.0, (sum, s) => sum + s.total),
       );
     }
 
     final totalSolicitudes = enRango.length;
     final clientesUnicos = enRango.map((s) => s.clienteId).toSet().length;
     final ticketPromedio =
-        entregadas.isEmpty ? 0.0 : totalEntregado / entregadas.length;
+        verificadas.isEmpty ? 0.0 : totalVerificado / verificadas.length;
 
     return KpisData(
-      totalEntregado: totalEntregado,
-      totalPendiente: totalPendiente,
+      totalRevisar: totalRevisar,
+      totalVerificado: totalVerificado,
+      totalNoPagado: totalNoPagado,
       ventasPorProducto: ventasPorProducto,
       forza: calcularCanal(CanalVenta.forza),
       ventaDirecta: calcularCanal(CanalVenta.ventaDirecta),

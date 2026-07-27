@@ -25,6 +25,7 @@ class _ExportarScreenState extends ConsumerState<ExportarScreen> {
       final ruta = await ExcelExportService().exportar(
         solicitudes: resultado.solicitudes,
         clientesPorId: resultado.clientesPorId,
+        productos: resultado.productos,
       );
       debugPrint('Excel guardado en: $ruta');
 
@@ -81,7 +82,7 @@ class _ExportarScreenState extends ConsumerState<ExportarScreen> {
             const _FiltroFechaExportar(),
             const SizedBox(height: 24),
             Text(
-              'Estado del pedido',
+              'Estado de la solicitud',
               style: AppTextStyles.displayMedium.copyWith(
                 color: AppColors.roast,
               ),
@@ -337,22 +338,28 @@ class _FiltroEstadoExportar extends ConsumerWidget {
       runSpacing: 8,
       children: [
         _Chip(
-          label: 'Pendientes',
-          seleccionado: filtro == FiltroEstadoExportar.pendientes,
+          label: 'Todos',
+          seleccionado: filtro == FiltroEstadoExportar.todos,
           onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
-              FiltroEstadoExportar.pendientes,
+              FiltroEstadoExportar.todos,
         ),
         _Chip(
-          label: 'Entregadas',
-          seleccionado: filtro == FiltroEstadoExportar.entregadas,
+          label: 'Revisar',
+          seleccionado: filtro == FiltroEstadoExportar.revisar,
           onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
-              FiltroEstadoExportar.entregadas,
+              FiltroEstadoExportar.revisar,
         ),
         _Chip(
-          label: 'Ambos',
-          seleccionado: filtro == FiltroEstadoExportar.ambos,
+          label: 'Verificado',
+          seleccionado: filtro == FiltroEstadoExportar.verificado,
           onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
-              FiltroEstadoExportar.ambos,
+              FiltroEstadoExportar.verificado,
+        ),
+        _Chip(
+          label: 'No pagado',
+          seleccionado: filtro == FiltroEstadoExportar.noPagado,
+          onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
+              FiltroEstadoExportar.noPagado,
         ),
       ],
     );
@@ -389,16 +396,23 @@ class _VistaPrevia extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Total entregado: ${formatMoneda(resultado.totalEntregado)}',
+            'Total revisar: ${formatMoneda(resultado.totalRevisar)}',
+            style: AppTextStyles.bodyMedium500.copyWith(
+              color: AppColors.warning,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Total verificado: ${formatMoneda(resultado.totalVerificado)}',
             style: AppTextStyles.bodyMedium500.copyWith(
               color: AppColors.success,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            'Total pendiente: ${formatMoneda(resultado.totalPendiente)}',
+            'Total no pagado: ${formatMoneda(resultado.totalNoPagado)}',
             style: AppTextStyles.bodyMedium500.copyWith(
-              color: AppColors.warning,
+              color: AppColors.danger,
             ),
           ),
         ],

@@ -8,6 +8,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../clientes/domain/cliente_model.dart';
 import '../../clientes/providers/clientes_providers.dart';
+import '../../productos/providers/productos_providers.dart';
 import '../domain/enums.dart';
 import '../domain/solicitud_model.dart';
 import '../providers/solicitudes_providers.dart';
@@ -33,8 +34,6 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
 
   final List<ProductoFormRow> _productos = [ProductoFormRow()];
 
-  EstadoPedido _estadoPedidoInicial = EstadoPedido.pendiente;
-
   final _notasController = TextEditingController();
 
   bool _isLoading = false;
@@ -56,6 +55,9 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
     _nuevoTelefonoController.dispose();
     _nuevoDireccionController.dispose();
     _notasController.dispose();
+    for (final fila in _productos) {
+      fila.dispose();
+    }
     super.dispose();
   }
 
@@ -71,7 +73,6 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
     if (_canal != null) return true;
     if (_clienteSeleccionado != null) return true;
     if (_notasController.text.trim().isNotEmpty) return true;
-    if (_estadoPedidoInicial != EstadoPedido.pendiente) return true;
     if (_productos.length > 1) return true;
     final fila = _productos.first;
     return fila.producto != null || fila.cantidad != 1 || fila.esPromo;
@@ -109,7 +110,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
   }
 
   void _quitarProducto(int index) {
-    setState(() => _productos.removeAt(index));
+    setState(() => _productos.removeAt(index).dispose());
   }
 
   Future<void> _guardar() async {
@@ -141,7 +142,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
         canal: _canal!,
         productos: productoItems,
         total: _total,
-        estadoPedido: _estadoPedidoInicial,
+        estadoSolicitud: EstadoSolicitud.revisar,
         estadoPago: EstadoPago.pendiente,
         notas: _notasController.text.trim().isEmpty
             ? null
@@ -186,6 +187,8 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final productosAsync = ref.watch(productosActivosProvider);
+
     return PopScope(
       canPop: !_hayCambios,
       onPopInvokedWithResult: (didPop, result) async {
@@ -199,138 +202,137 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
         backgroundColor: AppColors.cream,
         appBar: AppBar(title: const Text('Nueva Solicitud')),
         body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SeccionTitulo('1. Canal de venta'),
-            const SizedBox(height: 8),
-            SelectorCanal(
-              canal: _canal,
-              onChanged: (canal) => setState(() => _canal = canal),
-            ),
-            const SizedBox(height: 24),
-            const SeccionTitulo('2. Cliente'),
-            const SizedBox(height: 8),
-            SelectorCliente(
-              searchController: _clienteSearchController,
-              clienteSeleccionado: _clienteSeleccionado,
-              creandoNuevoCliente: _creandoNuevoCliente,
-              nombreController: _nuevoNombreController,
-              telefonoController: _nuevoTelefonoController,
-              direccionController: _nuevoDireccionController,
-              onClienteSeleccionado: (cliente) {
-                setState(() {
-                  _clienteSeleccionado = cliente;
-                  _creandoNuevoCliente = false;
-                });
-              },
-              onCambiarCliente: () {
-                setState(() {
-                  _clienteSeleccionado = null;
-                  _clienteSearchController.clear();
-                  ref.read(busquedaClienteProvider.notifier).state = '';
-                });
-              },
-              onCrearNuevo: () => setState(() => _creandoNuevoCliente = true),
-              onGuardarNuevoCliente: _crearCliente,
-              onCancelarNuevoCliente: () =>
-                  setState(() => _creandoNuevoCliente = false),
-            ),
-            const SizedBox(height: 24),
-            const SeccionTitulo('3. Productos'),
-            const SizedBox(height: 8),
-            for (var i = 0; i < _productos.length; i++) ...[
-              ProductoRowWidget(
-                row: _productos[i],
-                puedeEliminar: _productos.length > 1,
-                onChanged: () => setState(() {}),
-                onEliminar: () => _quitarProducto(i),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SeccionTitulo('1. Canal de venta'),
+              const SizedBox(height: 8),
+              SelectorCanal(
+                canal: _canal,
+                onChanged: (canal) => setState(() => _canal = canal),
               ),
-              const SizedBox(height: 12),
-            ],
-            OutlinedButton.icon(
-              onPressed: _agregarProducto,
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar otro producto'),
-            ),
-            const SizedBox(height: 24),
-            const SeccionTitulo('4. Estado del pedido'),
-            const SizedBox(height: 8),
-            SegmentedButton<EstadoPedido>(
-              segments: const [
-                ButtonSegment(
-                  value: EstadoPedido.pendiente,
-                  label: Text('Pendiente'),
+              const SizedBox(height: 24),
+              const SeccionTitulo('2. Cliente'),
+              const SizedBox(height: 8),
+              SelectorCliente(
+                searchController: _clienteSearchController,
+                clienteSeleccionado: _clienteSeleccionado,
+                creandoNuevoCliente: _creandoNuevoCliente,
+                nombreController: _nuevoNombreController,
+                telefonoController: _nuevoTelefonoController,
+                direccionController: _nuevoDireccionController,
+                onClienteSeleccionado: (cliente) {
+                  setState(() {
+                    _clienteSeleccionado = cliente;
+                    _creandoNuevoCliente = false;
+                  });
+                },
+                onCambiarCliente: () {
+                  setState(() {
+                    _clienteSeleccionado = null;
+                    _clienteSearchController.clear();
+                    ref.read(busquedaClienteProvider.notifier).state = '';
+                  });
+                },
+                onCrearNuevo: () => setState(() => _creandoNuevoCliente = true),
+                onGuardarNuevoCliente: _crearCliente,
+                onCancelarNuevoCliente: () =>
+                    setState(() => _creandoNuevoCliente = false),
+              ),
+              const SizedBox(height: 24),
+              const SeccionTitulo('3. Productos'),
+              const SizedBox(height: 8),
+              productosAsync.when(
+                data: (productosDisponibles) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var i = 0; i < _productos.length; i++) ...[
+                      ProductoRowWidget(
+                        row: _productos[i],
+                        productosDisponibles: productosDisponibles,
+                        puedeEliminar: _productos.length > 1,
+                        onChanged: () => setState(() {}),
+                        onEliminar: () => _quitarProducto(i),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    OutlinedButton.icon(
+                      onPressed: _agregarProducto,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Agregar otro producto'),
+                    ),
+                  ],
                 ),
-                ButtonSegment(
-                  value: EstadoPedido.entregado,
-                  label: Text('Entregado'),
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stackTrace) => Text(
+                  'No se pudieron cargar los productos.',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.danger,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const SeccionTitulo('4. Notas (opcional)'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _notasController,
+                maxLines: 3,
+                onChanged: (_) => setState(() {}),
+                decoration: const InputDecoration(
+                  hintText: 'Notas adicionales sobre la solicitud...',
+                ),
+              ),
+              const SizedBox(height: 24),
+              const SeccionTitulo('5. Total de la solicitud'),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.foam,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.steam),
+                ),
+                child: Text(
+                  'Total: Q${_total.toStringAsFixed(2)}',
+                  style: AppTextStyles.displayMedium.copyWith(
+                    color: AppColors.caramel,
+                  ),
+                ),
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.danger,
+                  ),
                 ),
               ],
-              selected: {_estadoPedidoInicial},
-              onSelectionChanged: (selection) {
-                setState(() => _estadoPedidoInicial = selection.first);
-              },
-            ),
-            const SizedBox(height: 24),
-            const SeccionTitulo('5. Notas (opcional)'),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _notasController,
-              maxLines: 3,
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                hintText: 'Notas adicionales sobre la solicitud...',
-              ),
-            ),
-            const SizedBox(height: 24),
-            const SeccionTitulo('6. Total de la solicitud'),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.foam,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.steam),
-              ),
-              child: Text(
-                'Total: Q${_total.toStringAsFixed(2)}',
-                style: AppTextStyles.displayMedium.copyWith(
-                  color: AppColors.caramel,
-                ),
-              ),
-            ),
-            if (_errorMessage != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                _errorMessage!,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.danger,
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _puedeGuardar && !_isLoading ? _guardar : null,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.foam,
+                          ),
+                        )
+                      : const Text('Guardar Solicitud'),
                 ),
               ),
             ],
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _puedeGuardar && !_isLoading ? _guardar : null,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.foam,
-                        ),
-                      )
-                    : const Text('Guardar Solicitud'),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
       ),
     );
   }

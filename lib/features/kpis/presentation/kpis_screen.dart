@@ -216,17 +216,25 @@ class _ResumenFinanciero extends StatelessWidget {
       children: [
         Expanded(
           child: _TarjetaResumen(
-            label: 'Total Entregado',
-            valor: kpis.totalEntregado,
+            label: 'Total Revisar',
+            valor: kpis.totalRevisar,
+            color: AppColors.warning,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _TarjetaResumen(
+            label: 'Total Verificado',
+            valor: kpis.totalVerificado,
             color: AppColors.success,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _TarjetaResumen(
-            label: 'Total Pendiente',
-            valor: kpis.totalPendiente,
-            color: AppColors.warning,
+            label: 'Total No pagado',
+            valor: kpis.totalNoPagado,
+            color: AppColors.danger,
           ),
         ),
       ],
@@ -310,23 +318,22 @@ class _FilaProducto extends StatelessWidget {
         children: [
           Text(producto.nombre, style: AppTextStyles.bodyMedium500),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _MetricaProducto(
-                  label: 'Entregado: ${producto.unidadesEntregadas} uds',
-                  monto: producto.ingresosEntregados,
-                  color: AppColors.success,
-                ),
-              ),
-              Expanded(
-                child: _MetricaProducto(
-                  label: 'Pendiente: ${producto.unidadesPendientes} uds',
-                  monto: producto.montoPendiente,
-                  color: AppColors.warning,
-                ),
-              ),
-            ],
+          _MetricaProducto(
+            label: 'Revisar: ${producto.unidadesRevisar} uds',
+            monto: producto.montoRevisar,
+            color: AppColors.warning,
+          ),
+          const SizedBox(height: 6),
+          _MetricaProducto(
+            label: 'Verificado: ${producto.unidadesVerificado} uds',
+            monto: producto.montoVerificado,
+            color: AppColors.success,
+          ),
+          const SizedBox(height: 6),
+          _MetricaProducto(
+            label: 'No pagado: ${producto.unidadesNoPagado} uds',
+            monto: producto.montoNoPagado,
+            color: AppColors.danger,
           ),
         ],
       ),
@@ -347,11 +354,10 @@ class _MetricaProducto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.bodyLight),
-        const SizedBox(height: 2),
+        Expanded(child: Text(label, style: AppTextStyles.bodyLight)),
         Text(
           formatMoneda(monto),
           style: AppTextStyles.bodyMedium500.copyWith(color: color),
@@ -421,7 +427,7 @@ class _TarjetaCanal extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            formatMoneda(datos.totalEntregado),
+            formatMoneda(datos.totalVerificado),
             style: AppTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.w700,
               color: color,

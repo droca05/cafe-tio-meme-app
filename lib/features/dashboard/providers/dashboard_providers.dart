@@ -4,14 +4,16 @@ import '../../solicitudes/domain/enums.dart';
 import '../../solicitudes/providers/solicitudes_providers.dart';
 
 class DashboardStats {
-  final int activasHoy;
-  final int pendientesHoy;
-  final int entregadasHoy;
+  final int ventasHoy;
+  final int revisarHoy;
+  final int verificadoHoy;
+  final int noPagadoHoy;
 
   const DashboardStats({
-    required this.activasHoy,
-    required this.pendientesHoy,
-    required this.entregadasHoy,
+    required this.ventasHoy,
+    required this.revisarHoy,
+    required this.verificadoHoy,
+    required this.noPagadoHoy,
   });
 }
 
@@ -27,12 +29,15 @@ final dashboardStatsProvider = Provider<DashboardStats>((ref) {
   final deHoy = solicitudes.where((s) => esHoy(s.fechaCreacion)).toList();
 
   return DashboardStats(
-    activasHoy: deHoy.length,
-    pendientesHoy: deHoy
-        .where((s) => s.estadoPedido == EstadoPedido.pendiente)
+    ventasHoy: deHoy.length,
+    revisarHoy: deHoy
+        .where((s) => s.estadoSolicitud == EstadoSolicitud.revisar)
         .length,
-    entregadasHoy: deHoy
-        .where((s) => s.estadoPedido == EstadoPedido.entregado)
+    verificadoHoy: deHoy
+        .where((s) => s.estadoSolicitud == EstadoSolicitud.verificado)
+        .length,
+    noPagadoHoy: deHoy
+        .where((s) => s.estadoSolicitud == EstadoSolicitud.noPagado)
         .length,
   );
 });

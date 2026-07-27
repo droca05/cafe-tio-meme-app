@@ -7,6 +7,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../clientes/domain/cliente_model.dart';
 import '../../clientes/providers/clientes_providers.dart';
+import '../../productos/domain/producto_model.dart';
+import '../../productos/providers/productos_providers.dart';
 import '../domain/enums.dart';
 import '../domain/solicitud_model.dart';
 import '../providers/solicitudes_providers.dart';
@@ -36,7 +38,6 @@ class _EditarSolicitudScreenState
   final _nuevoDireccionController = TextEditingController();
 
   final List<ProductoFormRow> _productos = [];
-  late EstadoPedido _estadoPedido;
 
   final _notasController = TextEditingController();
 
@@ -45,7 +46,6 @@ class _EditarSolicitudScreenState
 
   late CanalVenta _canalInicial;
   String? _clienteIdInicial;
-  late EstadoPedido _estadoPedidoInicial;
   late String _notasInicial;
   late List<String> _productosInicial;
 
@@ -60,21 +60,29 @@ class _EditarSolicitudScreenState
 
   List<String> _snapshotProductos() {
     return _productos
-        .map((p) => '${p.producto?.id}|${p.cantidad}|${p.esPromo}')
+        .map((p) => '${p.producto?.id}|${p.cantidad}|${p.esPromo}|${p.precioUnitario}')
         .toList();
   }
 
-  void _inicializar(Solicitud solicitud, Cliente cliente) {
+  void _inicializar(
+    Solicitud solicitud,
+    Cliente cliente,
+    List<Producto> productosDisponibles,
+  ) {
+    final productosPorId = {for (final p in productosDisponibles) p.id: p};
+
     _canal = solicitud.canal;
     _clienteSeleccionado = cliente;
-    _productos.addAll(solicitud.productos.map(ProductoFormRow.desde));
+    _productos.addAll(
+      solicitud.productos.map(
+        (item) => ProductoFormRow.desde(item, productosPorId[item.productoId]),
+      ),
+    );
     if (_productos.isEmpty) _productos.add(ProductoFormRow());
-    _estadoPedido = solicitud.estadoPedido;
     _notasController.text = solicitud.notas ?? '';
 
     _canalInicial = _canal;
     _clienteIdInicial = _clienteSeleccionado?.id;
-    _estadoPedidoInicial = _estadoPedido;
     _notasInicial = _notasController.text.trim();
     _productosInicial = _snapshotProductos();
 
@@ -85,7 +93,6 @@ class _EditarSolicitudScreenState
     if (!_inicializado) return false;
     if (_canal != _canalInicial) return true;
     if (_clienteSeleccionado?.id != _clienteIdInicial) return true;
-    if (_estadoPedido != _estadoPedidoInicial) return true;
     if (_notasController.text.trim() != _notasInicial) return true;
     final actuales = _snapshotProductos();
     if (actuales.length != _productosInicial.length) return true;
@@ -102,6 +109,9 @@ class _EditarSolicitudScreenState
     _nuevoTelefonoController.dispose();
     _nuevoDireccionController.dispose();
     _notasController.dispose();
+    for (final fila in _productos) {
+      fila.dispose();
+    }
     super.dispose();
   }
 
@@ -144,7 +154,7 @@ class _EditarSolicitudScreenState
   }
 
   void _quitarProducto(int index) {
-    setState(() => _productos.removeAt(index));
+    setState(() => _productos.removeAt(index).dispose());
   }
 
   Future<void> _guardar(Solicitud original) async {
@@ -174,7 +184,7 @@ class _EditarSolicitudScreenState
         canal: _canal,
         productos: productoItems,
         total: _total,
-        estadoPedido: _estadoPedido,
+        estadoSolicitud: original.estadoSolicitud,
         estadoPago: original.estadoPago,
         notas: _notasController.text.trim().isEmpty
             ? null
@@ -224,6 +234,7 @@ class _EditarSolicitudScreenState
   Widget build(BuildContext context) {
     final solicitudAsync =
         ref.watch(solicitudStreamProvider(widget.solicitudId));
+    final productosAsync = ref.watch(productosActivosProvider);
 
     return PopScope(
       canPop: !_hayCambios,
@@ -238,42 +249,51 @@ class _EditarSolicitudScreenState
         backgroundColor: AppColors.cream,
         appBar: AppBar(title: const Text('Editar Solicitud')),
         body: solicitudAsync.when(
-        data: (solicitud) {
-          if (_inicializado) {
-            return _buildForm(solicitud);
-          }
+          data: (solicitud) {
+            final clienteAsync =
+                ref.watch(clienteStreamProvider(solicitud.clienteId));
 
-          final clienteAsync =
-              ref.watch(clienteStreamProvider(solicitud.clienteId));
-
-          return clienteAsync.when(
-            data: (cliente) {
-              _inicializar(solicitud, cliente);
-              return _buildForm(solicitud);
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stackTrace) => Center(
-              child: Text(
-                'No se pudo cargar el cliente.',
-                style:
-                    AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
+            return clienteAsync.when(
+              data: (cliente) => productosAsync.when(
+                data: (productosDisponibles) {
+                  if (!_inicializado) {
+                    _inicializar(solicitud, cliente, productosDisponibles);
+                  }
+                  return _buildForm(solicitud, productosDisponibles);
+                },
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: Text(
+                    'No se pudieron cargar los productos.',
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.danger),
+                  ),
+                ),
               ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stackTrace) => Center(
+                child: Text(
+                  'No se pudo cargar el cliente.',
+                  style:
+                      AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
+                ),
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: Text(
+              'No se pudo cargar la solicitud.',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: Text(
-            'No se pudo cargar la solicitud.',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
           ),
-        ),
         ),
       ),
     );
   }
 
-  Widget _buildForm(Solicitud original) {
+  Widget _buildForm(Solicitud original, List<Producto> productosDisponibles) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -319,6 +339,7 @@ class _EditarSolicitudScreenState
           for (var i = 0; i < _productos.length; i++) ...[
             ProductoRowWidget(
               row: _productos[i],
+              productosDisponibles: productosDisponibles,
               puedeEliminar: _productos.length > 1,
               onChanged: () => setState(() {}),
               onEliminar: () => _quitarProducto(i),
@@ -331,26 +352,7 @@ class _EditarSolicitudScreenState
             label: const Text('Agregar otro producto'),
           ),
           const SizedBox(height: 24),
-          const SeccionTitulo('4. Estado del pedido'),
-          const SizedBox(height: 8),
-          SegmentedButton<EstadoPedido>(
-            segments: const [
-              ButtonSegment(
-                value: EstadoPedido.pendiente,
-                label: Text('Pendiente'),
-              ),
-              ButtonSegment(
-                value: EstadoPedido.entregado,
-                label: Text('Entregado'),
-              ),
-            ],
-            selected: {_estadoPedido},
-            onSelectionChanged: (selection) {
-              setState(() => _estadoPedido = selection.first);
-            },
-          ),
-          const SizedBox(height: 24),
-          const SeccionTitulo('5. Notas (opcional)'),
+          const SeccionTitulo('4. Notas (opcional)'),
           const SizedBox(height: 8),
           TextFormField(
             controller: _notasController,
@@ -361,7 +363,7 @@ class _EditarSolicitudScreenState
             ),
           ),
           const SizedBox(height: 24),
-          const SeccionTitulo('6. Total de la solicitud'),
+          const SeccionTitulo('5. Total de la solicitud'),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,

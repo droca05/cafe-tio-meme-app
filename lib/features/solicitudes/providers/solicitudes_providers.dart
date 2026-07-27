@@ -4,7 +4,7 @@ import '../data/solicitudes_repository.dart';
 import '../domain/enums.dart';
 import '../domain/solicitud_model.dart';
 
-enum FiltroSolicitud { todas, ventaDirecta, forza, pendiente, entregado }
+enum FiltroSolicitud { todas, ventaDirecta, forza, revisar, verificado, noPagado }
 
 final solicitudesRepositoryProvider = Provider<SolicitudesRepository>((ref) {
   return SolicitudesRepository();
@@ -45,13 +45,17 @@ final solicitudesFiltradasProvider = Provider<AsyncValue<List<Solicitud>>>((ref)
             .toList();
       case FiltroSolicitud.forza:
         return solicitudes.where((s) => s.canal == CanalVenta.forza).toList();
-      case FiltroSolicitud.pendiente:
+      case FiltroSolicitud.revisar:
         return solicitudes
-            .where((s) => s.estadoPedido == EstadoPedido.pendiente)
+            .where((s) => s.estadoSolicitud == EstadoSolicitud.revisar)
             .toList();
-      case FiltroSolicitud.entregado:
+      case FiltroSolicitud.verificado:
         return solicitudes
-            .where((s) => s.estadoPedido == EstadoPedido.entregado)
+            .where((s) => s.estadoSolicitud == EstadoSolicitud.verificado)
+            .toList();
+      case FiltroSolicitud.noPagado:
+        return solicitudes
+            .where((s) => s.estadoSolicitud == EstadoSolicitud.noPagado)
             .toList();
     }
   });

@@ -197,100 +197,44 @@ class _SolicitudDetailBody extends ConsumerWidget {
             ),
           ),
           if (solicitud.notas != null && solicitud.notas!.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Text('Notas', style: AppTextStyles.bodyMedium500),
-            const SizedBox(height: 8),
-            Text(solicitud.notas!, style: AppTextStyles.bodyMedium),
-          ],
-          const SizedBox(height: 24),
-          Text('Estado del pedido', style: AppTextStyles.bodyMedium500),
-          const SizedBox(height: 8),
-          _EstadoPedidoSelector(
-            estadoActual: solicitud.estadoPedido,
-            onChanged: (estado) async {
-              try {
-                await ref
-                    .read(solicitudesRepositoryProvider)
-                    .actualizarEstadoPedido(solicitud.id, estado);
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('No se pudo actualizar el estado: $e'),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: () => showDialog<void>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Nota'),
+                  content: Text(solicitud.notas!),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(
+                        'Cerrar',
+                        style: TextStyle(color: AppColors.caramel),
+                      ),
                     ),
-                  );
-                }
-              }
-            },
-          ),
+                  ],
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.sticky_note_2_outlined,
+                    size: 18,
+                    color: AppColors.caramel,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Ver nota',
+                    style: AppTextStyles.bodyMedium500.copyWith(
+                      color: AppColors.caramel,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
-      ),
-    );
-  }
-}
-
-class _EstadoPedidoSelector extends StatelessWidget {
-  final EstadoPedido estadoActual;
-  final ValueChanged<EstadoPedido> onChanged;
-
-  const _EstadoPedidoSelector({
-    required this.estadoActual,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _EstadoPedidoBoton(
-            label: 'Pendiente',
-            seleccionado: estadoActual == EstadoPedido.pendiente,
-            onTap: () => onChanged(EstadoPedido.pendiente),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _EstadoPedidoBoton(
-            label: 'Entregado',
-            seleccionado: estadoActual == EstadoPedido.entregado,
-            onTap: () => onChanged(EstadoPedido.entregado),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _EstadoPedidoBoton extends StatelessWidget {
-  final String label;
-  final bool seleccionado;
-  final VoidCallback onTap;
-
-  const _EstadoPedidoBoton({
-    required this.label,
-    required this.seleccionado,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: onTap,
-      child: Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: seleccionado ? AppColors.caramel : AppColors.steam,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.bodyMedium500.copyWith(
-            color: seleccionado ? Colors.white : AppColors.espresso,
-          ),
-        ),
       ),
     );
   }

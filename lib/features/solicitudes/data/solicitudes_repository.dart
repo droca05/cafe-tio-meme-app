@@ -49,8 +49,8 @@ class SolicitudesRepository {
     return _collection.doc(id).snapshots().map(Solicitud.fromFirestore);
   }
 
-  Future<void> actualizarEstadoPedido(String id, EstadoPedido estado) {
-    return _collection.doc(id).update({'estadoPedido': estado.name});
+  Future<void> actualizarEstadoSolicitud(String id, EstadoSolicitud estado) {
+    return _collection.doc(id).update({'estadoSolicitud': estado.name});
   }
 
   Future<void> actualizarEstadoPago(String id, EstadoPago estado) {

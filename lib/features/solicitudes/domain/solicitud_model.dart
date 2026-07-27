@@ -17,10 +17,10 @@ CanalVenta _parseCanal(String? value) {
   );
 }
 
-EstadoPedido _parseEstadoPedido(String? value) {
-  return EstadoPedido.values.firstWhere(
+EstadoSolicitud _parseEstadoSolicitud(String? value) {
+  return EstadoSolicitud.values.firstWhere(
     (e) => e.name == value,
-    orElse: () => EstadoPedido.pendiente,
+    orElse: () => EstadoSolicitud.revisar,
   );
 }
 
@@ -32,12 +32,12 @@ EstadoPago _parseEstadoPago(String? value) {
 }
 
 class ProductoItem {
-  final String productoId; // Referencia a ProductoCatalogo
+  final String productoId; // Referencia a Producto
   final String nombre; // Desnormalizado
   final PresentacionCafe? presentacion; // null si el producto no aplica presentación
   final int cantidad;
   final bool esPromo; // si se aplicó el precio promocional
-  final double precioUnitario; // precio aplicado (normal o promo) al momento de la venta
+  final double precioUnitario; // precio aplicado (editable al crear/editar)
   final double subtotal; // precioUnitario * cantidad
 
   const ProductoItem({
@@ -82,7 +82,7 @@ class Solicitud {
   final CanalVenta canal;
   final List<ProductoItem> productos;
   final double total; // Suma de los subtotales de productos
-  final EstadoPedido estadoPedido;
+  final EstadoSolicitud estadoSolicitud;
   final EstadoPago estadoPago;
   final String? notas;
   final DateTime fechaCreacion;
@@ -95,7 +95,7 @@ class Solicitud {
     required this.canal,
     required this.productos,
     required this.total,
-    required this.estadoPedido,
+    required this.estadoSolicitud,
     required this.estadoPago,
     this.notas,
     required this.fechaCreacion,
@@ -112,7 +112,7 @@ class Solicitud {
           .map((p) => ProductoItem.fromMap(p as Map<String, dynamic>))
           .toList(),
       total: (map['total'] as num?)?.toDouble() ?? 0,
-      estadoPedido: _parseEstadoPedido(map['estadoPedido'] as String?),
+      estadoSolicitud: _parseEstadoSolicitud(map['estadoSolicitud'] as String?),
       estadoPago: _parseEstadoPago(map['estadoPago'] as String?),
       notas: map['notas'] as String?,
       fechaCreacion:
@@ -132,7 +132,7 @@ class Solicitud {
       'canal': canal.name,
       'productos': productos.map((p) => p.toMap()).toList(),
       'total': total,
-      'estadoPedido': estadoPedido.name,
+      'estadoSolicitud': estadoSolicitud.name,
       'estadoPago': estadoPago.name,
       'notas': notas,
       'fechaCreacion': Timestamp.fromDate(fechaCreacion),
@@ -141,7 +141,7 @@ class Solicitud {
   }
 
   Solicitud copyWith({
-    EstadoPedido? estadoPedido,
+    EstadoSolicitud? estadoSolicitud,
     EstadoPago? estadoPago,
     String? notas,
   }) {
@@ -152,7 +152,7 @@ class Solicitud {
       canal: canal,
       productos: productos,
       total: total,
-      estadoPedido: estadoPedido ?? this.estadoPedido,
+      estadoSolicitud: estadoSolicitud ?? this.estadoSolicitud,
       estadoPago: estadoPago ?? this.estadoPago,
       notas: notas ?? this.notas,
       fechaCreacion: fechaCreacion,

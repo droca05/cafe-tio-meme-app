@@ -6,7 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../shared/widgets/canal_badge.dart';
-import '../../../shared/widgets/estado_pedido_badge.dart';
+import '../../../shared/widgets/estado_solicitud_icon.dart';
 import '../providers/solicitudes_providers.dart';
 
 // Placeholder mínimo — lista filtrable completa; el dashboard ya cubre
@@ -34,8 +34,9 @@ class SolicitudesListScreen extends ConsumerWidget {
                     FiltroSolicitud.todas: 'Todas',
                     FiltroSolicitud.ventaDirecta: 'Directa',
                     FiltroSolicitud.forza: 'FORZA',
-                    FiltroSolicitud.pendiente: 'Pendiente',
-                    FiltroSolicitud.entregado: 'Entregado',
+                    FiltroSolicitud.revisar: 'Revisar',
+                    FiltroSolicitud.verificado: 'Verificado',
+                    FiltroSolicitud.noPagado: 'No pagado',
                   }.entries)
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
@@ -85,8 +86,8 @@ class SolicitudesListScreen extends ConsumerWidget {
                               children: [
                                 CanalBadge(canal: solicitud.canal),
                                 const SizedBox(width: 8),
-                                EstadoPedidoBadge(
-                                  estadoPedido: solicitud.estadoPedido,
+                                EstadoSolicitudIcon(
+                                  estado: solicitud.estadoSolicitud,
                                 ),
                               ],
                             ),

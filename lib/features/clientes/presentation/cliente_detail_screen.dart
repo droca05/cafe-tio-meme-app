@@ -6,7 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../shared/widgets/canal_badge.dart';
-import '../../../shared/widgets/estado_pedido_badge.dart';
+import '../../../shared/widgets/estado_solicitud_icon.dart';
 import '../../solicitudes/providers/solicitudes_providers.dart';
 import '../domain/cliente_model.dart';
 import '../providers/clientes_providers.dart';
@@ -163,8 +163,8 @@ class _ClienteDetailScreenState extends ConsumerState<ClienteDetailScreen> {
                                 children: [
                                   CanalBadge(canal: solicitud.canal),
                                   const SizedBox(width: 8),
-                                  EstadoPedidoBadge(
-                                    estadoPedido: solicitud.estadoPedido,
+                                  EstadoSolicitudIcon(
+                                    estado: solicitud.estadoSolicitud,
                                   ),
                                 ],
                               ),

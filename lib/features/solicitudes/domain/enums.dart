@@ -1,6 +1,6 @@
 enum CanalVenta { forza, ventaDirecta }
 
-enum EstadoPedido { pendiente, enProceso, entregado }
+enum EstadoSolicitud { revisar, verificado, noPagado }
 
 enum EstadoPago { pendiente, transferenciaRecibida, verificado, pagado }
 

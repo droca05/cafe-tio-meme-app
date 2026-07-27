@@ -2,13 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../clientes/domain/cliente_model.dart';
 import '../../clientes/providers/clientes_providers.dart';
+import '../../productos/domain/producto_model.dart';
+import '../../productos/providers/productos_providers.dart';
 import '../../solicitudes/domain/enums.dart';
 import '../../solicitudes/domain/solicitud_model.dart';
 import '../../solicitudes/providers/solicitudes_providers.dart';
 
 enum FiltroFechaExportar { todo, hoy, semana, mes, personalizado }
 
-enum FiltroEstadoExportar { pendientes, entregadas, ambos }
+enum FiltroEstadoExportar { todos, revisar, verificado, noPagado }
 
 class RangoExportar {
   final DateTime? inicio;
@@ -20,14 +22,18 @@ class RangoExportar {
 class ResultadoExportar {
   final List<Solicitud> solicitudes;
   final Map<String, Cliente> clientesPorId;
-  final double totalEntregado;
-  final double totalPendiente;
+  final List<Producto> productos;
+  final double totalRevisar;
+  final double totalVerificado;
+  final double totalNoPagado;
 
   const ResultadoExportar({
     required this.solicitudes,
     required this.clientesPorId,
-    required this.totalEntregado,
-    required this.totalPendiente,
+    required this.productos,
+    required this.totalRevisar,
+    required this.totalVerificado,
+    required this.totalNoPagado,
   });
 }
 
@@ -35,7 +41,7 @@ final filtroFechaExportarProvider =
     StateProvider<FiltroFechaExportar>((ref) => FiltroFechaExportar.todo);
 
 final filtroEstadoExportarProvider =
-    StateProvider<FiltroEstadoExportar>((ref) => FiltroEstadoExportar.ambos);
+    StateProvider<FiltroEstadoExportar>((ref) => FiltroEstadoExportar.todos);
 
 final fechaInicioExportarProvider = StateProvider<DateTime?>((ref) => null);
 final fechaFinExportarProvider = StateProvider<DateTime?>((ref) => null);
@@ -79,12 +85,14 @@ final solicitudesParaExportarProvider =
     Provider<AsyncValue<ResultadoExportar>>((ref) {
   final solicitudesAsync = ref.watch(solicitudesStreamProvider);
   final clientesAsync = ref.watch(clientesStreamProvider);
+  final productosAsync = ref.watch(productosActivosProvider);
   final rango = ref.watch(rangoFechaExportarActivoProvider);
   final filtroEstado = ref.watch(filtroEstadoExportarProvider);
 
   return solicitudesAsync.whenData((todas) {
     final clientes = clientesAsync.value ?? <Cliente>[];
     final clientesPorId = {for (final c in clientes) c.id: c};
+    final productos = productosAsync.value ?? <Producto>[];
 
     final filtradas = todas.where((s) {
       if (rango != null) {
@@ -96,28 +104,35 @@ final solicitudesParaExportarProvider =
         }
       }
       switch (filtroEstado) {
-        case FiltroEstadoExportar.pendientes:
-          return s.estadoPedido == EstadoPedido.pendiente;
-        case FiltroEstadoExportar.entregadas:
-          return s.estadoPedido == EstadoPedido.entregado;
-        case FiltroEstadoExportar.ambos:
+        case FiltroEstadoExportar.todos:
           return true;
+        case FiltroEstadoExportar.revisar:
+          return s.estadoSolicitud == EstadoSolicitud.revisar;
+        case FiltroEstadoExportar.verificado:
+          return s.estadoSolicitud == EstadoSolicitud.verificado;
+        case FiltroEstadoExportar.noPagado:
+          return s.estadoSolicitud == EstadoSolicitud.noPagado;
       }
     }).toList()
       ..sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
 
-    final totalEntregado = filtradas
-        .where((s) => s.estadoPedido == EstadoPedido.entregado)
+    final totalRevisar = filtradas
+        .where((s) => s.estadoSolicitud == EstadoSolicitud.revisar)
         .fold(0.0, (sum, s) => sum + s.total);
-    final totalPendiente = filtradas
-        .where((s) => s.estadoPedido == EstadoPedido.pendiente)
+    final totalVerificado = filtradas
+        .where((s) => s.estadoSolicitud == EstadoSolicitud.verificado)
+        .fold(0.0, (sum, s) => sum + s.total);
+    final totalNoPagado = filtradas
+        .where((s) => s.estadoSolicitud == EstadoSolicitud.noPagado)
         .fold(0.0, (sum, s) => sum + s.total);
 
     return ResultadoExportar(
       solicitudes: filtradas,
       clientesPorId: clientesPorId,
-      totalEntregado: totalEntregado,
-      totalPendiente: totalPendiente,
+      productos: productos,
+      totalRevisar: totalRevisar,
+      totalVerificado: totalVerificado,
+      totalNoPagado: totalNoPagado,
     );
   });
 });
