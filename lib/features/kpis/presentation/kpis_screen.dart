@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -74,41 +75,56 @@ class _FiltroFechas extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final rango = ref.watch(rangoFechaProvider);
 
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _ChipRango(label: 'Todo', valor: RangoFecha.todo, actual: rango),
-              _ChipRango(label: 'Hoy', valor: RangoFecha.hoy, actual: rango),
-              _ChipRango(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ChipRango(
+                label: 'Todo',
+                valor: RangoFecha.todo,
+                actual: rango,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ChipRango(
+                label: 'Hoy',
+                valor: RangoFecha.hoy,
+                actual: rango,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ChipRango(
                 label: 'Esta semana',
                 valor: RangoFecha.semana,
                 actual: rango,
               ),
-              _ChipRango(
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ChipRango(
                 label: 'Este mes',
                 valor: RangoFecha.mes,
                 actual: rango,
               ),
-              _ChipRango(
-                label: 'Rango',
-                valor: RangoFecha.personalizado,
-                actual: rango,
-              ),
-            ],
-          ),
-          if (rango == RangoFecha.personalizado) ...[
-            const SizedBox(height: 12),
-            const _SelectorRangoPersonalizado(),
+            ),
           ],
+        ),
+        const SizedBox(height: 12),
+        _BotonRangoPersonalizado(
+          seleccionado: rango == RangoFecha.personalizado,
+          onTap: () =>
+              ref.read(rangoFechaProvider.notifier).state =
+                  RangoFecha.personalizado,
+        ),
+        if (rango == RangoFecha.personalizado) ...[
+          const SizedBox(height: 12),
+          const _SelectorRangoPersonalizado(),
         ],
-      ),
+      ],
     );
   }
 }
@@ -131,19 +147,69 @@ class _ChipRango extends ConsumerWidget {
       borderRadius: BorderRadius.circular(20),
       onTap: () => ref.read(rangoFechaProvider.notifier).state = valor,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: seleccionado ? AppColors.caramel : AppColors.foam,
+          color: seleccionado ? AppColors.caramel : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: seleccionado ? null : Border.all(color: AppColors.steam),
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
             color: seleccionado ? Colors.white : AppColors.espresso,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BotonRangoPersonalizado extends StatelessWidget {
+  final bool seleccionado;
+  final VoidCallback onTap;
+
+  const _BotonRangoPersonalizado({
+    required this.seleccionado,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: seleccionado ? AppColors.caramel : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: seleccionado ? null : Border.all(color: AppColors.steam),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_month_outlined,
+              size: 18,
+              color: seleccionado ? Colors.white : AppColors.espresso,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Rango personalizado',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: seleccionado ? Colors.white : AppColors.espresso,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -212,30 +278,40 @@ class _ResumenFinanciero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _TarjetaResumen(
-            label: 'Total Revisar',
-            valor: kpis.totalRevisar,
-            color: AppColors.warning,
-          ),
+        _TarjetaResumen(
+          icono: Icons.warning_amber_rounded,
+          iconoColor: AppColors.warning,
+          label: 'Total Revisar',
+          valor: formatMoneda(kpis.totalRevisar),
+          valorColor: AppColors.warning,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _TarjetaResumen(
-            label: 'Total Verificado',
-            valor: kpis.totalVerificado,
-            color: AppColors.success,
-          ),
+        const SizedBox(height: 10),
+        _TarjetaResumen(
+          icono: Icons.check_circle_rounded,
+          iconoColor: AppColors.success,
+          label: 'Total Verificado',
+          valor: formatMoneda(kpis.totalVerificado),
+          valorColor: AppColors.success,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _TarjetaResumen(
-            label: 'Total No pagado',
-            valor: kpis.totalNoPagado,
-            color: AppColors.danger,
+        const SizedBox(height: 10),
+        _TarjetaResumen(
+          icono: Icons.cancel_rounded,
+          iconoColor: AppColors.danger,
+          label: 'Total No pagado',
+          valor: formatMoneda(kpis.totalNoPagado),
+          valorColor: AppColors.danger,
+        ),
+        const SizedBox(height: 10),
+        _TarjetaResumen(
+          icono: Icons.attach_money,
+          iconoColor: AppColors.roast,
+          label: 'Total General',
+          valor: formatMoneda(
+            kpis.totalRevisar + kpis.totalVerificado + kpis.totalNoPagado,
           ),
+          valorColor: AppColors.roast,
         ),
       ],
     );
@@ -243,41 +319,65 @@ class _ResumenFinanciero extends StatelessWidget {
 }
 
 class _TarjetaResumen extends StatelessWidget {
+  final IconData icono;
+  final Color iconoColor;
   final String label;
-  final double valor;
-  final Color color;
+  final String valor;
+  final Color valorColor;
 
   const _TarjetaResumen({
+    required this.icono,
+    required this.iconoColor,
     required this.label,
     required this.valor,
-    required this.color,
+    required this.valorColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.foam,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.espresso.withValues(alpha: 0.10),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTextStyles.label),
-          const SizedBox(height: 8),
-          Text(
-            formatMoneda(valor),
-            style: AppTextStyles.displayMedium.copyWith(color: color),
-          ),
-        ],
+    return SizedBox(
+      width: double.infinity,
+      height: 70,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.foam,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.espresso.withValues(alpha: 0.10),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(icono, color: iconoColor, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppColors.roast,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                valor,
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: valorColor,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -5,15 +5,15 @@ import '../../solicitudes/providers/solicitudes_providers.dart';
 
 class DashboardStats {
   final int ventasHoy;
-  final int revisarHoy;
-  final int verificadoHoy;
-  final int noPagadoHoy;
+  final int revisarTotal;
+  final int verificadoTotal;
+  final int noPagadoTotal;
 
   const DashboardStats({
     required this.ventasHoy,
-    required this.revisarHoy,
-    required this.verificadoHoy,
-    required this.noPagadoHoy,
+    required this.revisarTotal,
+    required this.verificadoTotal,
+    required this.noPagadoTotal,
   });
 }
 
@@ -26,17 +26,17 @@ final dashboardStatsProvider = Provider<DashboardStats>((ref) {
       fecha.month == ahora.month &&
       fecha.day == ahora.day;
 
-  final deHoy = solicitudes.where((s) => esHoy(s.fechaCreacion)).toList();
+  final deHoy = solicitudes.where((s) => esHoy(s.fechaCreacion)).length;
 
   return DashboardStats(
-    ventasHoy: deHoy.length,
-    revisarHoy: deHoy
+    ventasHoy: deHoy,
+    revisarTotal: solicitudes
         .where((s) => s.estadoSolicitud == EstadoSolicitud.revisar)
         .length,
-    verificadoHoy: deHoy
+    verificadoTotal: solicitudes
         .where((s) => s.estadoSolicitud == EstadoSolicitud.verificado)
         .length,
-    noPagadoHoy: deHoy
+    noPagadoTotal: solicitudes
         .where((s) => s.estadoSolicitud == EstadoSolicitud.noPagado)
         .length,
   );

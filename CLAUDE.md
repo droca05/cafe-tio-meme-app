@@ -60,7 +60,7 @@ Extraída del logo de Café Tío Meme (grano de café en tonos marrón/caramelo 
 // lib/core/theme/app_colors.dart
 class AppColors {
   // Fondos
-  static const cream  = Color(0xFFF2EBE0); // Fondo principal
+  static const cream  = Color(0xFFE5DAC4); // Fondo principal
   static const foam   = Color(0xFFFAF6F0); // Fondo de tarjetas y modales
   static const steam  = Color(0xFFE8DDD0); // Bordes, divisores, chips inactivos
 

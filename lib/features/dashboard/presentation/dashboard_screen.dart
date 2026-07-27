@@ -88,7 +88,7 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _StatCard(
                         label: 'Revisar',
-                        value: '${stats.revisarHoy}',
+                        value: '${stats.revisarTotal}',
                         color: AppColors.warning,
                       ),
                     ),
@@ -100,7 +100,7 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _StatCard(
                         label: 'Verificado',
-                        value: '${stats.verificadoHoy}',
+                        value: '${stats.verificadoTotal}',
                         color: AppColors.success,
                       ),
                     ),
@@ -108,7 +108,7 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _StatCard(
                         label: 'No pagado',
-                        value: '${stats.noPagadoHoy}',
+                        value: '${stats.noPagadoTotal}',
                         color: AppColors.danger,
                       ),
                     ),
@@ -245,18 +245,24 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 70,
+      height: 80,
+      width: double.infinity,
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                value,
-                style: AppTextStyles.displayMedium.copyWith(
-                  color: color,
-                  fontSize: 20,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.displayMedium.copyWith(
+                    color: color,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),

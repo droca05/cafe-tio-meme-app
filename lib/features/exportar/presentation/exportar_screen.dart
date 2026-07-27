@@ -153,33 +153,46 @@ class _FiltroFechaExportar extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Row(
           children: [
-            _Chip(
-              label: 'Todo',
-              seleccionado: filtro == FiltroFechaExportar.todo,
-              onTap: () => ref.read(filtroFechaExportarProvider.notifier).state =
-                  FiltroFechaExportar.todo,
+            Expanded(
+              child: _Chip(
+                label: 'Todo',
+                seleccionado: filtro == FiltroFechaExportar.todo,
+                onTap: () =>
+                    ref.read(filtroFechaExportarProvider.notifier).state =
+                        FiltroFechaExportar.todo,
+              ),
             ),
-            _Chip(
-              label: 'Hoy',
-              seleccionado: filtro == FiltroFechaExportar.hoy,
-              onTap: () => ref.read(filtroFechaExportarProvider.notifier).state =
-                  FiltroFechaExportar.hoy,
+            const SizedBox(width: 8),
+            Expanded(
+              child: _Chip(
+                label: 'Hoy',
+                seleccionado: filtro == FiltroFechaExportar.hoy,
+                onTap: () =>
+                    ref.read(filtroFechaExportarProvider.notifier).state =
+                        FiltroFechaExportar.hoy,
+              ),
             ),
-            _Chip(
-              label: 'Esta semana',
-              seleccionado: filtro == FiltroFechaExportar.semana,
-              onTap: () => ref.read(filtroFechaExportarProvider.notifier).state =
-                  FiltroFechaExportar.semana,
+            const SizedBox(width: 8),
+            Expanded(
+              child: _Chip(
+                label: 'Esta semana',
+                seleccionado: filtro == FiltroFechaExportar.semana,
+                onTap: () =>
+                    ref.read(filtroFechaExportarProvider.notifier).state =
+                        FiltroFechaExportar.semana,
+              ),
             ),
-            _Chip(
-              label: 'Este mes',
-              seleccionado: filtro == FiltroFechaExportar.mes,
-              onTap: () => ref.read(filtroFechaExportarProvider.notifier).state =
-                  FiltroFechaExportar.mes,
+            const SizedBox(width: 8),
+            Expanded(
+              child: _Chip(
+                label: 'Este mes',
+                seleccionado: filtro == FiltroFechaExportar.mes,
+                onTap: () =>
+                    ref.read(filtroFechaExportarProvider.notifier).state =
+                        FiltroFechaExportar.mes,
+              ),
             ),
           ],
         ),
@@ -215,7 +228,8 @@ class _Chip extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: seleccionado ? AppColors.caramel : AppColors.foam,
           borderRadius: BorderRadius.circular(20),
@@ -223,6 +237,9 @@ class _Chip extends StatelessWidget {
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -337,33 +354,46 @@ class _FiltroEstadoExportar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filtro = ref.watch(filtroEstadoExportarProvider);
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Row(
       children: [
-        _Chip(
-          label: 'Todos',
-          seleccionado: filtro == FiltroEstadoExportar.todos,
-          onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
-              FiltroEstadoExportar.todos,
+        Expanded(
+          child: _Chip(
+            label: 'Todos',
+            seleccionado: filtro == FiltroEstadoExportar.todos,
+            onTap: () =>
+                ref.read(filtroEstadoExportarProvider.notifier).state =
+                    FiltroEstadoExportar.todos,
+          ),
         ),
-        _Chip(
-          label: 'Revisar',
-          seleccionado: filtro == FiltroEstadoExportar.revisar,
-          onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
-              FiltroEstadoExportar.revisar,
+        const SizedBox(width: 8),
+        Expanded(
+          child: _Chip(
+            label: 'Revisar',
+            seleccionado: filtro == FiltroEstadoExportar.revisar,
+            onTap: () =>
+                ref.read(filtroEstadoExportarProvider.notifier).state =
+                    FiltroEstadoExportar.revisar,
+          ),
         ),
-        _Chip(
-          label: 'Verificado',
-          seleccionado: filtro == FiltroEstadoExportar.verificado,
-          onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
-              FiltroEstadoExportar.verificado,
+        const SizedBox(width: 8),
+        Expanded(
+          child: _Chip(
+            label: 'Verificado',
+            seleccionado: filtro == FiltroEstadoExportar.verificado,
+            onTap: () =>
+                ref.read(filtroEstadoExportarProvider.notifier).state =
+                    FiltroEstadoExportar.verificado,
+          ),
         ),
-        _Chip(
-          label: 'No pagado',
-          seleccionado: filtro == FiltroEstadoExportar.noPagado,
-          onTap: () => ref.read(filtroEstadoExportarProvider.notifier).state =
-              FiltroEstadoExportar.noPagado,
+        const SizedBox(width: 8),
+        Expanded(
+          child: _Chip(
+            label: 'No pagado',
+            seleccionado: filtro == FiltroEstadoExportar.noPagado,
+            onTap: () =>
+                ref.read(filtroEstadoExportarProvider.notifier).state =
+                    FiltroEstadoExportar.noPagado,
+          ),
         ),
       ],
     );

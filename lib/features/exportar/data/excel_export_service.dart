@@ -1,7 +1,5 @@
-import 'dart:io';
-
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 import '../../clientes/domain/cliente_model.dart';
@@ -296,35 +294,25 @@ class ExcelExportService {
     hoja.getRangeByIndex(1, 7).columnWidth = 17;
   }
 
+  static const _canalDescargas = MethodChannel(
+    'com.cafetiomeme.cafe_tio_meme/descargas',
+  );
+
   Future<String> _guardarArchivo(List<int> bytes) async {
     final nombreArchivo =
         'CafeTioMeme_${DateFormat('ddMMyyyy').format(DateTime.now())}.xlsx';
 
-    // En Android 10+ (API 29+) no se puede escribir directamente en
-    // /sdcard/Download vía File; se intenta con las carpetas que el propio
-    // sistema operativo concede sin permisos especiales, y como último
-    // recurso se usa el directorio de documentos de la app, que siempre
-    // funciona sin requerir ningún permiso.
-    Directory? directorio;
+    // Se guarda vía MediaStore (canal nativo) para que el archivo quede
+    // en la carpeta pública de Descargas del teléfono en Android 10+
+    // (API 29+), sin requerir permisos de almacenamiento.
+    final ruta = await _canalDescargas.invokeMethod<String>(
+      'guardarEnDescargas',
+      {
+        'nombreArchivo': nombreArchivo,
+        'bytes': Uint8List.fromList(bytes),
+      },
+    );
 
-    try {
-      directorio = await getDownloadsDirectory();
-    } catch (_) {
-      directorio = null;
-    }
-
-    if (directorio == null) {
-      try {
-        directorio = await getExternalStorageDirectory();
-      } catch (_) {
-        directorio = null;
-      }
-    }
-
-    directorio ??= await getApplicationDocumentsDirectory();
-
-    final archivo = File('${directorio.path}/$nombreArchivo');
-    await archivo.writeAsBytes(bytes, flush: true);
-    return archivo.path;
+    return ruta ?? nombreArchivo;
   }
 }
