@@ -266,25 +266,24 @@ class _EditarSolicitudScreenState
           Navigator.of(context).pop();
         }
       },
-      child: Scaffold(
-        backgroundColor: AppColors.cream,
-        appBar: AppBar(title: const Text('Editar Solicitud')),
-        body: solicitudAsync.when(
-          data: (solicitud) {
-            final clienteAsync =
-                ref.watch(clienteStreamProvider(solicitud.clienteId));
+      child: solicitudAsync.when(
+        data: (solicitud) {
+          final clienteAsync =
+              ref.watch(clienteStreamProvider(solicitud.clienteId));
 
-            return clienteAsync.when(
-              data: (cliente) => productosAsync.when(
-                data: (productosDisponibles) {
-                  if (!_inicializado) {
-                    _inicializar(solicitud, cliente, productosDisponibles);
-                  }
-                  return _buildForm(solicitud, productosDisponibles);
-                },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) => Center(
+          return clienteAsync.when(
+            data: (cliente) => productosAsync.when(
+              data: (productosDisponibles) {
+                if (!_inicializado) {
+                  _inicializar(solicitud, cliente, productosDisponibles);
+                }
+                return _buildScaffold(solicitud, productosDisponibles);
+              },
+              loading: () => _buildMensajeScaffold(
+                const Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, stackTrace) => _buildMensajeScaffold(
+                Center(
                   child: Text(
                     'No se pudieron cargar los productos.',
                     style: AppTextStyles.bodyMedium
@@ -292,18 +291,26 @@ class _EditarSolicitudScreenState
                   ),
                 ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stackTrace) => Center(
+            ),
+            loading: () => _buildMensajeScaffold(
+              const Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stackTrace) => _buildMensajeScaffold(
+              Center(
                 child: Text(
                   'No se pudo cargar el cliente.',
                   style:
                       AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
                 ),
               ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(
+            ),
+          );
+        },
+        loading: () => _buildMensajeScaffold(
+          const Center(child: CircularProgressIndicator()),
+        ),
+        error: (error, stackTrace) => _buildMensajeScaffold(
+          Center(
             child: Text(
               'No se pudo cargar la solicitud.',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
@@ -314,9 +321,48 @@ class _EditarSolicitudScreenState
     );
   }
 
+  Widget _buildMensajeScaffold(Widget body) {
+    return Scaffold(
+      backgroundColor: AppColors.cream,
+      appBar: AppBar(title: const Text('Editar Solicitud')),
+      body: body,
+    );
+  }
+
+  Widget _buildScaffold(Solicitud original, List<Producto> productosDisponibles) {
+    return Scaffold(
+      backgroundColor: AppColors.cream,
+      appBar: AppBar(title: const Text('Editar Solicitud')),
+      body: _buildForm(original, productosDisponibles),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _puedeGuardar && !_isLoading
+                  ? () => _guardar(original)
+                  : null,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.foam,
+                      ),
+                    )
+                  : const Text('Guardar Cambios'),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildForm(Solicitud original, List<Producto> productosDisponibles) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -417,25 +463,6 @@ class _EditarSolicitudScreenState
               ),
             ),
           ],
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _puedeGuardar && !_isLoading
-                  ? () => _guardar(original)
-                  : null,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.foam,
-                      ),
-                    )
-                  : const Text('Guardar Cambios'),
-            ),
-          ),
         ],
       ),
     );

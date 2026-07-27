@@ -68,7 +68,7 @@ class _ExportarScreenState extends ConsumerState<ExportarScreen> {
       backgroundColor: AppColors.cream,
       appBar: AppBar(title: const Text('Exportar solicitudes')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -110,29 +110,33 @@ class _ExportarScreenState extends ConsumerState<ExportarScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: resultadoAsync.maybeWhen(
-                  data: (resultado) => !_generando && resultado.solicitudes.isNotEmpty
-                      ? () => _descargarExcel(resultado)
-                      : null,
-                  orElse: () => null,
-                ),
-                child: _generando
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.foam,
-                        ),
-                      )
-                    : const Text('Descargar Excel'),
-              ),
-            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: resultadoAsync.maybeWhen(
+                data: (resultado) => !_generando && resultado.solicitudes.isNotEmpty
+                    ? () => _descargarExcel(resultado)
+                    : null,
+                orElse: () => null,
+              ),
+              child: _generando
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.foam,
+                      ),
+                    )
+                  : const Text('Descargar Excel'),
+            ),
+          ),
         ),
       ),
     );

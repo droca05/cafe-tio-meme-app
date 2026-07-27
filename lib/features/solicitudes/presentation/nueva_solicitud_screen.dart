@@ -223,7 +223,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
         backgroundColor: AppColors.cream,
         appBar: AppBar(title: const Text('Nueva Solicitud')),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -341,24 +341,28 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _puedeGuardar && !_isLoading ? _guardar : null,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.foam,
-                          ),
-                        )
-                      : const Text('Guardar Solicitud'),
-                ),
-              ),
             ],
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _puedeGuardar && !_isLoading ? _guardar : null,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.foam,
+                        ),
+                      )
+                    : const Text('Guardar Solicitud'),
+              ),
+            ),
           ),
         ),
       ),
