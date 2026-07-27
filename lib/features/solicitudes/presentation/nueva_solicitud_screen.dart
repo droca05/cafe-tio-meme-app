@@ -25,6 +25,10 @@ class NuevaSolicitudScreen extends ConsumerStatefulWidget {
 class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
   CanalVenta? _canal;
 
+  late final DateTime _horaBase;
+  late DateTime _fecha;
+  late final DateTime _fechaInicial;
+
   final _clienteSearchController = TextEditingController();
   Cliente? _clienteSeleccionado;
   bool _creandoNuevoCliente = false;
@@ -42,9 +46,25 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
   @override
   void initState() {
     super.initState();
+    _horaBase = DateTime.now();
+    _fecha = _horaBase;
+    _fechaInicial = _horaBase;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(busquedaClienteProvider.notifier).state = '';
+    });
+  }
+
+  void _cambiarFecha(DateTime nuevaFecha) {
+    setState(() {
+      _fecha = DateTime(
+        nuevaFecha.year,
+        nuevaFecha.month,
+        nuevaFecha.day,
+        _horaBase.hour,
+        _horaBase.minute,
+        _horaBase.second,
+      );
     });
   }
 
@@ -71,6 +91,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
 
   bool get _hayCambios {
     if (_canal != null) return true;
+    if (_fecha != _fechaInicial) return true;
     if (_clienteSeleccionado != null) return true;
     if (_notasController.text.trim().isNotEmpty) return true;
     if (_productos.length > 1) return true;
@@ -147,7 +168,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
         notas: _notasController.text.trim().isEmpty
             ? null
             : _notasController.text.trim(),
-        fechaCreacion: DateTime.now(),
+        fechaCreacion: _fecha,
         creadoPor: creadoPor,
       );
 
@@ -213,7 +234,14 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
                 onChanged: (canal) => setState(() => _canal = canal),
               ),
               const SizedBox(height: 24),
-              const SeccionTitulo('2. Cliente'),
+              const SeccionTitulo('2. Fecha de la solicitud'),
+              const SizedBox(height: 8),
+              SelectorFecha(
+                fecha: _fecha,
+                onChanged: _cambiarFecha,
+              ),
+              const SizedBox(height: 24),
+              const SeccionTitulo('3. Cliente'),
               const SizedBox(height: 8),
               SelectorCliente(
                 searchController: _clienteSearchController,
@@ -241,7 +269,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
                     setState(() => _creandoNuevoCliente = false),
               ),
               const SizedBox(height: 24),
-              const SeccionTitulo('3. Productos'),
+              const SeccionTitulo('4. Productos'),
               const SizedBox(height: 8),
               productosAsync.when(
                 data: (productosDisponibles) => Column(
@@ -276,7 +304,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const SeccionTitulo('4. Notas (opcional)'),
+              const SeccionTitulo('5. Notas (opcional)'),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _notasController,
@@ -287,7 +315,7 @@ class _NuevaSolicitudScreenState extends ConsumerState<NuevaSolicitudScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const SeccionTitulo('5. Total de la solicitud'),
+              const SeccionTitulo('6. Total de la solicitud'),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,

@@ -38,6 +38,11 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Café Tío Meme'),
         actions: [
+          if (esAdmin)
+            IconButton(
+              icon: const Icon(Icons.inventory_2_outlined),
+              onPressed: () => context.push('/productos'),
+            ),
           IconButton(
             icon: const Icon(Icons.download_outlined),
             onPressed: () => context.push('/exportar'),

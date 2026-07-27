@@ -30,6 +30,10 @@ class _EditarSolicitudScreenState
 
   late CanalVenta _canal;
 
+  late DateTime _horaBase;
+  late DateTime _fecha;
+  late DateTime _fechaInicial;
+
   final _clienteSearchController = TextEditingController();
   Cliente? _clienteSeleccionado;
   bool _creandoNuevoCliente = false;
@@ -72,6 +76,9 @@ class _EditarSolicitudScreenState
     final productosPorId = {for (final p in productosDisponibles) p.id: p};
 
     _canal = solicitud.canal;
+    _horaBase = solicitud.fechaCreacion;
+    _fecha = solicitud.fechaCreacion;
+    _fechaInicial = solicitud.fechaCreacion;
     _clienteSeleccionado = cliente;
     _productos.addAll(
       solicitud.productos.map(
@@ -89,9 +96,23 @@ class _EditarSolicitudScreenState
     _inicializado = true;
   }
 
+  void _cambiarFecha(DateTime nuevaFecha) {
+    setState(() {
+      _fecha = DateTime(
+        nuevaFecha.year,
+        nuevaFecha.month,
+        nuevaFecha.day,
+        _horaBase.hour,
+        _horaBase.minute,
+        _horaBase.second,
+      );
+    });
+  }
+
   bool get _hayCambios {
     if (!_inicializado) return false;
     if (_canal != _canalInicial) return true;
+    if (_fecha != _fechaInicial) return true;
     if (_clienteSeleccionado?.id != _clienteIdInicial) return true;
     if (_notasController.text.trim() != _notasInicial) return true;
     final actuales = _snapshotProductos();
@@ -189,7 +210,7 @@ class _EditarSolicitudScreenState
         notas: _notasController.text.trim().isEmpty
             ? null
             : _notasController.text.trim(),
-        fechaCreacion: original.fechaCreacion,
+        fechaCreacion: _fecha,
         creadoPor: original.creadoPor,
       );
 
@@ -306,7 +327,14 @@ class _EditarSolicitudScreenState
             onChanged: (canal) => setState(() => _canal = canal),
           ),
           const SizedBox(height: 24),
-          const SeccionTitulo('2. Cliente'),
+          const SeccionTitulo('2. Fecha de la solicitud'),
+          const SizedBox(height: 8),
+          SelectorFecha(
+            fecha: _fecha,
+            onChanged: _cambiarFecha,
+          ),
+          const SizedBox(height: 24),
+          const SeccionTitulo('3. Cliente'),
           const SizedBox(height: 8),
           SelectorCliente(
             searchController: _clienteSearchController,
@@ -334,7 +362,7 @@ class _EditarSolicitudScreenState
                 setState(() => _creandoNuevoCliente = false),
           ),
           const SizedBox(height: 24),
-          const SeccionTitulo('3. Productos'),
+          const SeccionTitulo('4. Productos'),
           const SizedBox(height: 8),
           for (var i = 0; i < _productos.length; i++) ...[
             ProductoRowWidget(
@@ -352,7 +380,7 @@ class _EditarSolicitudScreenState
             label: const Text('Agregar otro producto'),
           ),
           const SizedBox(height: 24),
-          const SeccionTitulo('4. Notas (opcional)'),
+          const SeccionTitulo('5. Notas (opcional)'),
           const SizedBox(height: 8),
           TextFormField(
             controller: _notasController,
@@ -363,7 +391,7 @@ class _EditarSolicitudScreenState
             ),
           ),
           const SizedBox(height: 24),
-          const SeccionTitulo('5. Total de la solicitud'),
+          const SeccionTitulo('6. Total de la solicitud'),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,

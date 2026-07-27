@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -73,6 +74,62 @@ class SeccionTitulo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(texto, style: AppTextStyles.bodyMedium500);
+  }
+}
+
+class SelectorFecha extends StatelessWidget {
+  final DateTime fecha;
+  final ValueChanged<DateTime> onChanged;
+
+  const SelectorFecha({
+    super.key,
+    required this.fecha,
+    required this.onChanged,
+  });
+
+  Future<void> _seleccionarFecha(BuildContext context) async {
+    final ahora = DateTime.now();
+    final seleccionada = await showDatePicker(
+      context: context,
+      initialDate: fecha,
+      firstDate: DateTime(ahora.year - 1, ahora.month, ahora.day),
+      lastDate: DateTime(ahora.year + 50),
+      locale: const Locale('es'),
+    );
+    if (seleccionada != null) {
+      onChanged(seleccionada);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () => _seleccionarFecha(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.steam),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                DateFormat('dd/MM/yyyy').format(fecha),
+                style: AppTextStyles.bodyMedium,
+              ),
+            ),
+            const Icon(
+              Icons.calendar_today_outlined,
+              color: AppColors.caramel,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

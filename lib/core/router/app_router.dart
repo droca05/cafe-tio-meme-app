@@ -11,6 +11,9 @@ import '../../features/clientes/presentation/clientes_list_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/exportar/presentation/exportar_screen.dart';
 import '../../features/kpis/presentation/kpis_screen.dart';
+import '../../features/productos/presentation/editar_producto_screen.dart';
+import '../../features/productos/presentation/nuevo_producto_screen.dart';
+import '../../features/productos/presentation/productos_screen.dart';
 import '../../features/solicitudes/presentation/editar_solicitud_screen.dart';
 import '../../features/solicitudes/presentation/nueva_solicitud_screen.dart';
 import '../../features/solicitudes/presentation/solicitud_detail_screen.dart';
@@ -86,6 +89,20 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return EditarSolicitudScreen(solicitudId: id);
         },
+      ),
+      GoRoute(
+        path: '/productos',
+        builder: (context, state) => const ProductosScreen(),
+      ),
+      GoRoute(
+        path: '/productos/nuevo',
+        builder: (context, state) => const NuevoProductoScreen(),
+      ),
+      GoRoute(
+        path: '/productos/:id/editar',
+        builder: (context, state) => EditarProductoScreen(
+          productoId: state.pathParameters['id']!,
+        ),
       ),
       GoRoute(
         path: '/clientes',
