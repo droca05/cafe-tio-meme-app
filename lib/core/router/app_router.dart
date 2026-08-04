@@ -18,6 +18,7 @@ import '../../features/solicitudes/presentation/editar_solicitud_screen.dart';
 import '../../features/solicitudes/presentation/nueva_solicitud_screen.dart';
 import '../../features/solicitudes/presentation/solicitud_detail_screen.dart';
 import '../../features/solicitudes/presentation/solicitudes_list_screen.dart';
+import '../../features/solicitudes/providers/solicitudes_providers.dart';
 
 /// Convierte el Stream de authStateChanges en un Listenable
 /// para que GoRouter reevalúe el redirect ante cambios de sesión.
@@ -48,7 +49,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authRepository.currentUser != null;
       final isLoggingIn = state.matchedLocation == '/login';
 
-      if (!isLoggedIn && !isLoggingIn) return '/login';
+      if (!isLoggedIn && !isLoggingIn) {
+        // Los chips de filtro del dashboard son StateProvider: no se
+        // resetean solos. Si quedaron en una combinación que no matchea
+        // nada para el próximo usuario, la lista se ve vacía aunque haya
+        // datos reales (las tarjetas de conteo no filtran y sí los muestran).
+        ref.invalidate(canalFiltroProvider);
+        ref.invalidate(estadosFiltroProvider);
+        return '/login';
+      }
       if (isLoggedIn && isLoggingIn) return '/dashboard';
       return null;
     },

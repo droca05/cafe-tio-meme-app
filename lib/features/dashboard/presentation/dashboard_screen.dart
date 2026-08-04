@@ -242,12 +242,13 @@ class DashboardScreen extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
+              // El reintento automático (ref.listen más arriba) crea una
+              // nueva suscripción; mientras tanto se muestra el mismo
+              // estado vacío que cuando no hay solicitudes.
               error: (error, stackTrace) => Center(
                 child: Text(
-                  'Ocurrió un error al cargar las solicitudes.',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.danger,
-                  ),
+                  'No hay solicitudes aún',
+                  style: AppTextStyles.bodyMedium,
                 ),
               ),
             ),

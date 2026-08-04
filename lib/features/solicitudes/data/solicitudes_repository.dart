@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../domain/enums.dart';
 import '../domain/solicitud_model.dart';
@@ -24,11 +25,24 @@ class SolicitudesRepository {
     return _collection.doc(id).delete();
   }
 
+  // Un solo orderBy sin where() en otro campo: Firestore lo cubre con su
+  // índice automático de campo simple, no requiere índice compuesto.
   Stream<List<Solicitud>> streamSolicitudes() {
     return _collection
         .orderBy('fechaCreacion', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map(Solicitud.fromFirestore).toList());
+        .map((snapshot) {
+      final List<Solicitud> solicitudes = [];
+      for (final doc in snapshot.docs) {
+        try {
+          solicitudes.add(Solicitud.fromFirestore(doc));
+        } catch (e) {
+          debugPrint('Error deserializando solicitud ${doc.id}: $e');
+          // Se omite este documento y se sigue con los demás.
+        }
+      }
+      return solicitudes;
+    });
   }
 
   // Sin orderBy en el query para evitar requerir un índice compuesto en
