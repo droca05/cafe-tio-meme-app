@@ -390,6 +390,7 @@ class _EstadoSolicitudMenu extends ConsumerWidget {
 
     return PopupMenuButton<EstadoSolicitud>(
       icon: Icon(icono, color: color, size: 20),
+      padding: const EdgeInsets.all(8),
       tooltip: 'Cambiar estado',
       onSelected: (estado) {
         ref
@@ -459,7 +460,7 @@ class _SolicitudCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    height: 20,
+                    height: 36,
                     child: _EstadoSolicitudMenu(
                       solicitud: solicitud,
                       puedeEditar: puedeEditarEstado,
