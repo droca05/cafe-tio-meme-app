@@ -7,6 +7,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../shared/widgets/canal_badge.dart';
 import '../../../shared/widgets/estado_solicitud_icon.dart';
+import '../domain/enums.dart';
 import '../providers/solicitudes_providers.dart';
 
 // Placeholder mínimo — lista filtrable completa; el dashboard ya cubre
@@ -17,7 +18,8 @@ class SolicitudesListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final solicitudesAsync = ref.watch(solicitudesFiltradasProvider);
-    final filtro = ref.watch(filtroSolicitudProvider);
+    final canalFiltro = ref.watch(canalFiltroProvider);
+    final estadosFiltro = ref.watch(estadosFiltroProvider);
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -31,21 +33,38 @@ class SolicitudesListScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   for (final entry in const {
-                    FiltroSolicitud.todas: 'Todas',
-                    FiltroSolicitud.ventaDirecta: 'Directa',
-                    FiltroSolicitud.forza: 'FORZA',
-                    FiltroSolicitud.revisar: 'Revisar',
-                    FiltroSolicitud.verificado: 'Verificado',
-                    FiltroSolicitud.noPagado: 'No pagado',
+                    CanalFiltro.todas: 'Todas',
+                    CanalFiltro.ventaDirecta: 'Directa',
+                    CanalFiltro.forza: 'FORZA',
                   }.entries)
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: ChoiceChip(
                         label: Text(entry.value),
-                        selected: filtro == entry.key,
+                        selected: canalFiltro == entry.key,
                         onSelected: (_) {
-                          ref.read(filtroSolicitudProvider.notifier).state =
+                          ref.read(canalFiltroProvider.notifier).state =
                               entry.key;
+                        },
+                      ),
+                    ),
+                  for (final entry in const {
+                    EstadoSolicitud.revisar: 'Revisar',
+                    EstadoSolicitud.verificado: 'Verificado',
+                    EstadoSolicitud.noPagado: 'No pagado',
+                  }.entries)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(entry.value),
+                        selected: estadosFiltro.contains(entry.key),
+                        onSelected: (_) {
+                          final nuevo = Set<EstadoSolicitud>.from(estadosFiltro);
+                          if (!nuevo.remove(entry.key)) {
+                            nuevo.add(entry.key);
+                          }
+                          ref.read(estadosFiltroProvider.notifier).state =
+                              nuevo;
                         },
                       ),
                     ),

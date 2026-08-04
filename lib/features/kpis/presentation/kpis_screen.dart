@@ -19,49 +19,51 @@ class KpisScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(title: const Text('KPIs')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const _FiltroFechas(),
-            const SizedBox(height: 24),
-            kpisAsync.when(
-              data: (kpis) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ResumenFinanciero(kpis: kpis),
-                  const SizedBox(height: 24),
-                  const SeccionTitulo('Ventas por producto'),
-                  const SizedBox(height: 8),
-                  _TablaProductos(productos: kpis.ventasPorProducto),
-                  const SizedBox(height: 24),
-                  const SeccionTitulo('Por canal'),
-                  const SizedBox(height: 8),
-                  _PorCanal(kpis: kpis),
-                  const SizedBox(height: 24),
-                  const SeccionTitulo('Actividad'),
-                  const SizedBox(height: 8),
-                  _Actividad(kpis: kpis),
-                ],
-              ),
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 48),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, stackTrace) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 48),
-                child: Center(
-                  child: Text(
-                    'Ocurrió un error al calcular los KPIs.',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.danger,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _FiltroFechas(),
+              const SizedBox(height: 24),
+              kpisAsync.when(
+                data: (kpis) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _ResumenFinanciero(kpis: kpis),
+                    const SizedBox(height: 24),
+                    const SeccionTitulo('Ventas por producto'),
+                    const SizedBox(height: 8),
+                    _TablaProductos(productos: kpis.ventasPorProducto),
+                    const SizedBox(height: 24),
+                    const SeccionTitulo('Por canal'),
+                    const SizedBox(height: 8),
+                    _PorCanal(kpis: kpis),
+                    const SizedBox(height: 24),
+                    const SeccionTitulo('Actividad'),
+                    const SizedBox(height: 8),
+                    _Actividad(kpis: kpis),
+                  ],
+                ),
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stackTrace) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 48),
+                  child: Center(
+                    child: Text(
+                      'Ocurrió un error al calcular los KPIs.',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.danger,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

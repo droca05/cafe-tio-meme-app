@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/utils/permission_helper.dart';
 import '../../../shared/widgets/canal_badge.dart';
 import '../../../shared/widgets/estado_solicitud_icon.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -13,7 +14,17 @@ import '../../solicitudes/domain/solicitud_model.dart';
 import '../../solicitudes/providers/solicitudes_providers.dart';
 import '../providers/dashboard_providers.dart';
 
-const _emailAdmin = 'julioroca92@gmail.com';
+void _toggleEstado(
+  WidgetRef ref,
+  Set<EstadoSolicitud> actuales,
+  EstadoSolicitud estado,
+) {
+  final nuevo = Set<EstadoSolicitud>.from(actuales);
+  if (!nuevo.remove(estado)) {
+    nuevo.add(estado);
+  }
+  ref.read(estadosFiltroProvider.notifier).state = nuevo;
+}
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -28,10 +39,11 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateChangesProvider).value;
-    final esAdmin = user?.email == _emailAdmin;
+    final esAdmin = PermissionHelper.isAdmin(user?.email);
     final stats = ref.watch(dashboardStatsProvider);
     final solicitudesAsync = ref.watch(solicitudesFiltradasProvider);
-    final filtro = ref.watch(filtroSolicitudProvider);
+    final canalFiltro = ref.watch(canalFiltroProvider);
+    final estadosFiltro = ref.watch(estadosFiltroProvider);
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -128,24 +140,30 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _FiltroChip(
                         label: 'Todas',
-                        filtro: FiltroSolicitud.todas,
-                        seleccionado: filtro,
+                        isSelected: canalFiltro == CanalFiltro.todas,
+                        onTap: () => ref
+                            .read(canalFiltroProvider.notifier)
+                            .state = CanalFiltro.todas,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _FiltroChip(
                         label: 'Directa',
-                        filtro: FiltroSolicitud.ventaDirecta,
-                        seleccionado: filtro,
+                        isSelected: canalFiltro == CanalFiltro.ventaDirecta,
+                        onTap: () => ref
+                            .read(canalFiltroProvider.notifier)
+                            .state = CanalFiltro.ventaDirecta,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _FiltroChip(
                         label: 'FORZA',
-                        filtro: FiltroSolicitud.forza,
-                        seleccionado: filtro,
+                        isSelected: canalFiltro == CanalFiltro.forza,
+                        onTap: () => ref
+                            .read(canalFiltroProvider.notifier)
+                            .state = CanalFiltro.forza,
                       ),
                     ),
                   ],
@@ -156,27 +174,42 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _FiltroChip(
                         label: 'Revisar',
-                        filtro: FiltroSolicitud.revisar,
-                        seleccionado: filtro,
                         icono: Icons.warning_amber_rounded,
+                        isSelected:
+                            estadosFiltro.contains(EstadoSolicitud.revisar),
+                        onTap: () => _toggleEstado(
+                          ref,
+                          estadosFiltro,
+                          EstadoSolicitud.revisar,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _FiltroChip(
                         label: 'Verificado',
-                        filtro: FiltroSolicitud.verificado,
-                        seleccionado: filtro,
                         icono: Icons.check_circle_rounded,
+                        isSelected:
+                            estadosFiltro.contains(EstadoSolicitud.verificado),
+                        onTap: () => _toggleEstado(
+                          ref,
+                          estadosFiltro,
+                          EstadoSolicitud.verificado,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _FiltroChip(
                         label: 'No pagado',
-                        filtro: FiltroSolicitud.noPagado,
-                        seleccionado: filtro,
                         icono: Icons.cancel_rounded,
+                        isSelected:
+                            estadosFiltro.contains(EstadoSolicitud.noPagado),
+                        onTap: () => _toggleEstado(
+                          ref,
+                          estadosFiltro,
+                          EstadoSolicitud.noPagado,
+                        ),
                       ),
                     ),
                   ],
@@ -281,33 +314,30 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _FiltroChip extends ConsumerWidget {
+class _FiltroChip extends StatelessWidget {
   final String label;
-  final FiltroSolicitud filtro;
-  final FiltroSolicitud seleccionado;
+  final bool isSelected;
+  final VoidCallback onTap;
   final IconData? icono;
 
   const _FiltroChip({
     required this.label,
-    required this.filtro,
-    required this.seleccionado,
+    required this.isSelected,
+    required this.onTap,
     this.icono,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isSelected = filtro == seleccionado;
+  Widget build(BuildContext context) {
     final color = isSelected ? Colors.white : AppColors.espresso;
     return InkWell(
       borderRadius: BorderRadius.circular(20),
-      onTap: () {
-        ref.read(filtroSolicitudProvider.notifier).state = filtro;
-      },
+      onTap: onTap,
       child: Container(
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.caramel : AppColors.foam,
+          color: isSelected ? AppColors.caramel : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: isSelected
               ? null

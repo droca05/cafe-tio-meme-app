@@ -5,11 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/permission_helper.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../domain/producto_model.dart';
 import '../providers/productos_providers.dart';
-
-const _emailAdmin = 'julioroca92@gmail.com';
 
 class ProductosScreen extends ConsumerWidget {
   const ProductosScreen({super.key});
@@ -17,7 +16,7 @@ class ProductosScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateChangesProvider).value;
-    if (user?.email != _emailAdmin) {
+    if (!PermissionHelper.isAdmin(user?.email)) {
       return Scaffold(
         backgroundColor: AppColors.cream,
         appBar: AppBar(title: const Text('Productos')),
